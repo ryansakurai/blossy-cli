@@ -20,22 +20,30 @@ def perc(
         float,
         typer.Option("--ratio", "-r", show_default=False)
     ] = None,
+    full_msg: Annotated[
+        bool,
+        typer.Option()
+    ] = True,
 ):
     """
-    Pass two of the three options and get the third calculated for you.
+    Pass two of the three options and get the third calculated for you. Example:
+
+    $ mafs perc --whole 100 --part 25
+    
+    Ratio: 0.25
     """
 
     if whole is not None and part is not None:
         ratio = part/whole
-        print(f"Ratio: {ratio}")
+        print(f"Ratio: {ratio}" if full_msg else ratio)
     elif whole is not None and ratio is not None:
         part = whole*ratio
-        print(f"Part: {part}")
+        print(f"Part: {part}" if full_msg else part)
     elif part is not None and ratio is not None:
         whole = part/ratio
-        print(f"Whole: {whole}")
+        print(f"Whole: {whole}" if full_msg else whole)
     else:
-        raise typer.BadParameter("Two options must be specified (eg. whole and part).")
+        raise typer.BadParameter("Two options must be passed.")
 
 @app.command()
 def rand():
