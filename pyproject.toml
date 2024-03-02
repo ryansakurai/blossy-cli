@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mafs"
-version = "0.2"
+version = "1.0"
 description = "Util CLI for math related utils."
 readme = "README.md"
 license = {file = "LICENSE"}
