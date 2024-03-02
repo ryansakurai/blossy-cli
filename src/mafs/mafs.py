@@ -55,8 +55,21 @@ def rand(
 
 
 @app.command()
-def calc():
-    pass
+def calc(
+    expression: Annotated[str, typer.Argument(show_default=False)],
+    full_msg: Annotated[bool, typer.Option()] = True,
+):
+    """
+    Calculate the value of a mathematical expression.
+
+    Warning: this function uses eval(), which makes it insecure!
+    """
+
+    try:
+        result = eval(expression)
+        print(f"Result: {result}" if full_msg else result)
+    except Exception as e:
+        raise typer.BadParameter("Invalid expression.") from e
 
 
 if __name__ == "__main__":
