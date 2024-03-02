@@ -1,13 +1,13 @@
 """
-CLI for math-related utilities.
+A CLI for math-related utilities.
 """
 
-import typer
 import random
+import typer
 from typing_extensions import Annotated
 
 
-app = typer.Typer(name="mafs")
+app = typer.Typer(name="mafs", help="A CLI for math-related utilities.")
 
 
 @app.command()
