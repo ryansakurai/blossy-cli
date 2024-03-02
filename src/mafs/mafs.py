@@ -59,7 +59,7 @@ def calc(
     expression: Annotated[str, typer.Argument(show_default=False)],
 ):
     """
-    Calculate the value of a mathematical expression.
+    Calculate the value of a mathematical expression using Python syntax.
 
     Warning: this function uses eval(), which makes it insecure!
     """
