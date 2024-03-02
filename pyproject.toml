@@ -21,4 +21,4 @@ classifiers = [
 repository = "https://github.com/ryansakurai/mafs-cli"
 
 [project.scripts]
-mafs = "src.mafs.main:main"
+mafs = "src.mafs.mafs:main"
