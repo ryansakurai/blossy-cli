@@ -60,15 +60,15 @@ def calc(
     expression: Annotated[str, typer.Argument(show_default=False)],
 ):
     """
-    Calculate the value of a mathematical expression. Available syntax:
-    • expr
-    • (expr)
-    • + expr
-    • - expr
-    • expr ^ expr
-    • expr * expr
-    • expr / expr
-    • expr + expr
+    Calculate the value of a mathematical expression. Available syntax:\n
+    • expr\n
+    • (expr)\n
+    • + expr\n
+    • - expr\n
+    • expr ^ expr\n
+    • expr * expr\n
+    • expr / expr\n
+    • expr + expr\n
     • expr - expr
     """
     try:
