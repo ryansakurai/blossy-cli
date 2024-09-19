@@ -5,6 +5,7 @@ A CLI for math-related utilities.
 import random
 import typer
 from typing_extensions import Annotated
+from .calc_parser import CalcLexer, CalcParser
 
 
 app = typer.Typer(name="mafs", help="A CLI for math-related utilities.")
@@ -59,16 +60,24 @@ def calc(
     expression: Annotated[str, typer.Argument(show_default=False)],
 ):
     """
-    Calculate the value of a mathematical expression using Python syntax.
-
-    Warning: this function uses eval(), which makes it insecure!
+    Calculate the value of a mathematical expression. Available syntax:
+    • expr
+    • (expr)
+    • + expr
+    • - expr
+    • expr ^ expr
+    • expr * expr
+    • expr / expr
+    • expr + expr
+    • expr - expr
     """
-
     try:
-        result = eval(expression)
+        lexer = CalcLexer()
+        parser = CalcParser()
+        result = parser.parse(lexer.tokenize(expression))
         print(result)
     except Exception as e:
-        raise typer.BadParameter("Invalid expression.") from e
+        raise typer.BadParameter(str(e)) from e
 
 
 if __name__ == "__main__":
