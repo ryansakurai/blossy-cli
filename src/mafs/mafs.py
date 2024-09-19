@@ -3,9 +3,10 @@ A CLI for math-related utilities.
 """
 
 import random
+import os
 import typer
 from typing_extensions import Annotated
-from .calc_parser import CalcLexer, CalcParser
+from .calc import CalcLexer, CalcParser, VisualCalcParser, CalcVisualizer
 
 
 app = typer.Typer(name="mafs", help="A CLI for math-related utilities.")
@@ -58,6 +59,7 @@ def rand(
 @app.command()
 def calc(
     expression: Annotated[str, typer.Argument(show_default=False)],
+    visualize: Annotated[bool, typer.Option("--visualize", "-v")] = False,
 ):
     """
     Calculate the value of a mathematical expression. Available syntax:\n
@@ -72,6 +74,28 @@ def calc(
     • expr - expr
     """
     try:
+        if visualize:
+            lexer = CalcLexer()
+            parser = VisualCalcParser()
+            result = parser.parse(lexer.tokenize(expression))
+            visualizer = CalcVisualizer(result)
+
+            for operation, stack_state, input_state in visualizer.visualize():
+                if operation:
+                    print(f"> {operation}")
+                if stack_state and input_state:
+                    print()
+                    terminal_width = os.get_terminal_size().columns
+                    left_side = stack_state
+                    right_side = input_state
+                    padding = terminal_width - len(left_side) - len(right_side)
+                    if padding > 0:
+                        print(left_side + " " * padding + right_side)
+                    else:
+                        print(left_side + "\t" + right_side)
+                input()
+            return
+
         lexer = CalcLexer()
         parser = CalcParser()
         result = parser.parse(lexer.tokenize(expression))
