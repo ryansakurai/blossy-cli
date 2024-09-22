@@ -1,4 +1,7 @@
-from typing import Union, Optional, Tuple
+"""
+Module dedicated to functionalities of the 'calc' command
+"""
+from typing import List, Optional, Tuple
 from sly import Lexer, Parser
 from sly.lex import Token
 from sly.yacc import YaccProduction
@@ -51,43 +54,48 @@ class CalcParser(Parser):
 
 
     @_('expression')
-    def start(self, prod: YaccProduction) -> Union[int, float]:
-        return prod.expression
+    def start(self, prod: YaccProduction) -> int|float:
+        return self.__normalize_num(prod.expression)
+    
+    def __normalize_num(self, num: int|float) -> int|float:
+        if isinstance(num, int):
+            return num
+        return int(num) if num.is_integer() else round(num, 2)
 
     @_("expression PLUS expression")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return prod.expression0 + prod.expression1
 
     @_("expression MINUS expression")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return prod.expression0 - prod.expression1
 
     @_("expression TIMES expression")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return prod.expression0 * prod.expression1
 
     @_("expression DIVIDE expression")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return prod.expression0 / prod.expression1
 
     @_("expression EXPONENT expression")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return prod.expression0 ** prod.expression1
 
     @_("PLUS expression %prec UNARY_PLUS")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return prod.expression
 
     @_("MINUS expression %prec UNARY_MINUS")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return 0 - prod.expression
 
     @_("L_PARENTH expression R_PARENTH")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return prod.expression
 
     @_("number")
-    def expression(self, prod: YaccProduction) -> Union[int, float]:
+    def expression(self, prod: YaccProduction) -> int|float:
         return prod.number
 
     @_("INT_CONST")
@@ -165,11 +173,11 @@ class CalcVisualizer:
     UNARY_OPERATORS = ("+₁", "-₁")
     BINARY_OPERATORS = ("+₂", "-₂", "*", "/", "^")
 
-    def __init__(self, values: Tuple[Union[str, int, float]]) -> None:
+    def __init__(self, values: Tuple[str]) -> None:
         self.values_tuple = values
 
     def visualize(self):
-        stack = ["$"]
+        stack: List[str] = ["$"]
         values = list(self.values_tuple) + ["$"]
         yield None, " ".join(stack), " ".join(values)
 
@@ -197,7 +205,13 @@ class CalcVisualizer:
             values_str = " ".join(values)
             yield operation, stack_str, values_str
 
-        yield f"The result is {stack[-1]}", None, None
+        final_result = stack.pop()
+        final_result = self.___to_num(final_result)
+        final_result = round(final_result, 2)
+        yield f"The result is {final_result}", None, None
+
+    def ___to_num(self, num: str) -> int|float:
+        return float(num) if "." in num else int(num)
 
     def __handle_unary(self,
                        operator: str,
@@ -212,13 +226,10 @@ class CalcVisualizer:
 
         return str(result), operation
     
-    def ___to_num(self, num: str) -> Union[int, float]:
-        return float(num) if "." in num else int(num)
-    
     def __handle_binary(self,
                        operator: str,
-                       operand1: Union[int, float],
-                       operand2: Union[int, float]) -> Tuple[Union[int, float], str]:
+                       operand1: int|float,
+                       operand2: int|float) -> Tuple[int|float, str]:
         match operator:
             case "+₂":
                 result = self.___to_num(operand1) + self.___to_num(operand2)
@@ -228,13 +239,20 @@ class CalcVisualizer:
                 operation = f"{operand1} - {operand2} = {result}"
             case "*":
                 result = self.___to_num(operand1) * self.___to_num(operand2)
+                result = self.__trim_num(result)
                 operation = f"{operand1} * {operand2} = {result}"
             case "/":
                 result = self.___to_num(operand1) / self.___to_num(operand2)
-                result = int(result) if result.is_integer() else result
+                result = self.__trim_num(result)
                 operation = f"{operand1} / {operand2} = {result}"
             case "^":
                 result = self.___to_num(operand1) ** self.___to_num(operand2)
+                result = self.__trim_num(result)
                 operation = f"{operand1}^{operand2} = {result}"
 
         return str(result), operation
+    
+    def __trim_num(self, num: int|float) -> int|float:
+        if isinstance(num, int):
+            return num
+        return int(num) if num.is_integer() else num
