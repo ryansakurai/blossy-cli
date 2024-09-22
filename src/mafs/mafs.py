@@ -22,8 +22,8 @@ def perc(
     """
     Take two of the three percentage-related options and calculate the remaining one.
 
-    $ mafs perc --whole 100 --part 25
-
+    Example:\n
+    $ mafs perc --whole 100 --part 25\n
     Ratio: 0.25
     """
 
@@ -62,8 +62,9 @@ def calc(
     visualize: Annotated[bool, typer.Option("--visualize", "-v")] = False,
 ):
     """
-    Calculate the value of a mathematical expression. Available syntax:\n
-    • expr\n
+    Calculate the value of a mathematical expression.\n
+
+    Available syntax:\n
     • (expr)\n
     • + expr\n
     • - expr\n
