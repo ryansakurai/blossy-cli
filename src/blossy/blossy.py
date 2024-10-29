@@ -8,7 +8,6 @@ import typer
 from typing_extensions import Annotated
 from .calc import CalcLexer, CalcParser, VisualCalcParser, CalcVisualizer
 
-
 app = typer.Typer(name="blossy", help="A lil' bud that helps you with stuff (it's a utility CLI).")
 
 
@@ -20,6 +19,8 @@ def perc(
     full_msg: Annotated[bool, typer.Option()] = True,
 ):
     """
+    PERCENTAGE
+
     Take two of the three percentage-related options and calculate the remaining one.
 
     Example:\n
@@ -47,6 +48,8 @@ def rand(
     quantity: Annotated[int, typer.Option("--quantity", "-q")] = 1,
 ):
     """
+    RANDOM
+
     Calculate a random number between 'lower' an 'upper'.
     """
 
@@ -62,7 +65,9 @@ def calc(
     visualize: Annotated[bool, typer.Option("--visualize", "-v")] = False,
 ):
     """
-    Calculate the value of a mathematical expression.\n
+    CALCULATE
+
+    Calculate the value of a mathematical expression.
 
     Available syntax:\n
     • (expr)\n
@@ -103,6 +108,36 @@ def calc(
         print(result)
     except Exception as e:
         raise typer.BadParameter(str(e)) from e
+    
+
+@app.command()
+def stddz(
+    prefix: Annotated[str, typer.Argument(show_default=False)],
+    directory: Annotated[str, typer.Argument(show_default=False)],
+    starting_number: Annotated[int, typer.Option("--start", "-s")] = 0,
+    qt_digits: Annotated[int, typer.Option("--digits", "-d")] = 3,
+):
+    """
+    STARDARDIZE
+
+    Rename all files in a DIRECTORY to '{PREFIX}-{ID}', in which the ID is
+    calculated incrementally.
+    """
+
+    dir_abs_path = os.path.abspath(directory)
+    files = [f for f in os.listdir(dir_abs_path) if os.path.isfile(os.path.join(dir_abs_path, f))]
+    last_id = starting_number + len(files) - 1
+    max_qt_digits = len(str(last_id))
+    qt_digits = max(qt_digits, max_qt_digits)
+
+    num = starting_number
+    for filename in files:
+        _, ext = os.path.splitext(filename)
+        num_str = f"{num:0{qt_digits}}"
+        new_file = f"{prefix}-{num_str}{ext}"
+        os.rename(os.path.join(dir_abs_path, filename), os.path.join(dir_abs_path, new_file))
+
+        num += 1
 
 
 if __name__ == "__main__":
