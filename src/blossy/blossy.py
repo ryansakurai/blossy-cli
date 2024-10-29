@@ -1,5 +1,5 @@
 """
-A CLI for math-related utilities.
+A lil' bud that helps you with stuff (it's a utility CLI).
 """
 
 import random
@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 from .calc import CalcLexer, CalcParser, VisualCalcParser, CalcVisualizer
 
 
-app = typer.Typer(name="mafs", help="A CLI for math-related utilities.")
+app = typer.Typer(name="blossy", help="A lil' bud that helps you with stuff (it's a utility CLI).")
 
 
 @app.command()
@@ -23,7 +23,7 @@ def perc(
     Take two of the three percentage-related options and calculate the remaining one.
 
     Example:\n
-    $ mafs perc --whole 100 --part 25\n
+    $ blossy perc --whole 100 --part 25\n
     Ratio: 0.25
     """
 

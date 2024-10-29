@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mafs"
+name = "blossy"
 version = "3.2"
-description = "Util CLI for math related utils."
+description = "A lil' bud that helps you with stuff (it's a utility CLI)."
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.urls]
-repository = "https://github.com/ryansakurai/mafs-cli"
+repository = "https://github.com/ryansakurai/blossy-cli"
 
 [project.scripts]
-mafs = "mafs.mafs:app"
+blossy = "blossy.blossy:app"
