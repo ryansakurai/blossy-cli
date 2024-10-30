@@ -16,7 +16,7 @@ def perc(
     whole: Annotated[float, typer.Option("--whole", "-w", show_default=False)] = None,
     part: Annotated[float, typer.Option("--part", "-p", show_default=False)] = None,
     ratio: Annotated[float, typer.Option("--ratio", "-r", show_default=False)] = None,
-    full_msg: Annotated[bool, typer.Option()] = True,
+    full_msg: Annotated[bool, typer.Option(help="Show full message.")] = True,
 ):
     """
     PERCENTAGE
@@ -43,14 +43,23 @@ def perc(
 
 @app.command()
 def rand(
-    lower: Annotated[int, typer.Argument(show_default=False)],
-    upper: Annotated[int, typer.Argument(show_default=False)],
-    quantity: Annotated[int, typer.Option("--quantity", "-q")] = 1,
+    lower: Annotated[
+        int,
+        typer.Argument(show_default=False, help="Lower limit (inclusive)."),
+    ],
+    upper: Annotated[
+        int,
+        typer.Argument(show_default=False, help="Upper limit (inclusive)."),
+    ],
+    quantity: Annotated[
+        int,
+        typer.Option("--quantity", "-q", help="Quantity of random numbers to generate."),
+    ] = 1,
 ):
     """
     RANDOM
 
-    Calculate a random number between 'lower' an 'upper'.
+    Generate a random number between 'lower' an 'upper'.
     """
 
     for i in range(quantity):
@@ -61,8 +70,17 @@ def rand(
 
 @app.command()
 def calc(
-    expression: Annotated[str, typer.Argument(show_default=False)],
-    visualize: Annotated[bool, typer.Option("--visualize", "-v")] = False,
+    expression: Annotated[
+        str,
+        typer.Argument(show_default=False, help="Expression to be calculated."),
+    ],
+    visualize: Annotated[
+        bool,
+        typer.Option(
+            "--visualize", "-v",
+            help="Show a visualization using postfix notation and a stack.",
+        ),
+    ] = False,
 ):
     """
     CALCULATE
@@ -112,10 +130,22 @@ def calc(
 
 @app.command()
 def stddz(
-    prefix: Annotated[str, typer.Argument(show_default=False)],
-    directory: Annotated[str, typer.Argument(show_default=False)],
-    starting_number: Annotated[int, typer.Option("--start", "-s")] = 0,
-    qt_digits: Annotated[int, typer.Option("--digits", "-d")] = 3,
+    prefix: Annotated[
+        str,
+        typer.Argument(show_default=False, help="Prefix of the files."),
+    ],
+    directory: Annotated[
+        str,
+        typer.Argument(show_default=False, help="Relative path to the directory."),
+    ],
+    starting_number: Annotated[
+        int,
+        typer.Option("--start", "-s", help="Starting number for the IDs."),
+    ] = 0,
+    qt_digits: Annotated[
+        int,
+        typer.Option("--digits", "-d", help="Quantity of digits used to represent the ID.")
+    ] = 3,
 ):
     """
     STARDARDIZE
@@ -142,25 +172,31 @@ def stddz(
 
 @app.command()
 def count(
-    file_path: Annotated[str, typer.Argument(show_default=False)],
-    ignore_unnec: Annotated[bool, typer.Option("--ignore-unnec")] = False,
-    ignore_ws: Annotated[bool, typer.Option("--ignore-ws")] = False,
-    full_msg: Annotated[bool, typer.Option()] = True,
+    file: Annotated[
+        str,
+        typer.Argument(show_default=False, help="Relative path to the file."),
+    ],
+    ignore_unnec: Annotated[
+        bool,
+        typer.Option("--ignore-unnec", help="Ignore unnecessary (repeated) whitespace."),
+    ] = False,
+    ignore_ws: Annotated[
+        bool,
+        typer.Option("--ignore-ws", help="Ignore all whitespace."),
+    ] = False,
+    full_msg: Annotated[
+        bool,
+        typer.Option(help="Show full message.")
+    ] = True,
 ):
     """
     COUNT
 
     Count the amount of characters in a text file.
-    
-    - To ignore unnecessary whitespace, use --ignore-unnec. That way, if there's more than
-    one whitespace character between characters, only one is counted.
-    
-    - To ignore all whitespace, use --ignore-ws.
-
     """
 
     current_dir = os.getcwd()
-    full_file_path = os.path.join(current_dir, file_path)
+    full_file_path = os.path.join(current_dir, file)
 
     try:
         with open(full_file_path, "r", encoding="utf-8") as file:
