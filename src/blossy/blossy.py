@@ -108,7 +108,7 @@ def calc(
         print(result)
     except Exception as e:
         raise typer.BadParameter(str(e)) from e
-    
+
 
 @app.command()
 def stddz(
@@ -143,10 +143,22 @@ def stddz(
 @app.command()
 def count(
     file_path: Annotated[str, typer.Argument(show_default=False)],
+    ignore_unnec: Annotated[bool, typer.Option("--ignore-unnec")] = False,
     ignore_ws: Annotated[bool, typer.Option("--ignore-ws")] = False,
-    ignore_trail: Annotated[bool, typer.Option("--ignore-trail")] = False,
     full_msg: Annotated[bool, typer.Option()] = True,
 ):
+    """
+    COUNT
+
+    Count the amount of characters in a text file.
+    
+    - To ignore unnecessary whitespace, use --ignore-unnec. That way, if there's more than
+    one whitespace character between characters, only one is counted.
+    
+    - To ignore all whitespace, use --ignore-ws.
+
+    """
+
     current_dir = os.getcwd()
     full_file_path = os.path.join(current_dir, file_path)
 
@@ -159,13 +171,13 @@ def count(
             for char in content:
                 if ignore_ws and char.isspace():
                     pass
-                elif ignore_trail and char.isspace() and prev_char.isspace():
+                elif ignore_unnec and char.isspace() and prev_char.isspace():
                     pass
                 else:
                     char_count += 1
                 prev_char = char
 
-            if ignore_trail:
+            if ignore_unnec:
                 if content[0].isspace():
                     char_count -= 1
                 if content[-1].isspace():

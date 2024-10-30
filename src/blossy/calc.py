@@ -56,7 +56,7 @@ class CalcParser(Parser):
     @_('expression')
     def start(self, prod: YaccProduction) -> int|float:
         return self.__normalize_num(prod.expression)
-    
+
     def __normalize_num(self, num: int|float) -> int|float:
         if isinstance(num, int):
             return num
@@ -105,7 +105,7 @@ class CalcParser(Parser):
     @_("FLOAT_CONST")
     def number(self, prod: YaccProduction) -> float:
         return float(prod.FLOAT_CONST)
-    
+
 class VisualCalcParser(Parser):
     tokens = CalcLexer.tokens
 
@@ -168,7 +168,7 @@ class VisualCalcParser(Parser):
     @_("FLOAT_CONST")
     def number(self, prod: YaccProduction) -> float:
         return prod.FLOAT_CONST
-    
+
 class CalcVisualizer:
     UNARY_OPERATORS = ("+₁", "-₁")
     BINARY_OPERATORS = ("+₂", "-₂", "*", "/", "^")
@@ -225,7 +225,7 @@ class CalcVisualizer:
                 operation = f"-{operand} = {result}"
 
         return str(result), operation
-    
+
     def __handle_binary(self,
                        operator: str,
                        operand1: int|float,
@@ -251,7 +251,7 @@ class CalcVisualizer:
                 operation = f"{operand1}^{operand2} = {result}"
 
         return str(result), operation
-    
+
     def __trim_num(self, num: int|float) -> int|float:
         if isinstance(num, int):
             return num
