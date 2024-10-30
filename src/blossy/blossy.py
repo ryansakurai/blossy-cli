@@ -140,5 +140,42 @@ def stddz(
         num += 1
 
 
+@app.command()
+def count(
+    file_path: Annotated[str, typer.Argument(show_default=False)],
+    ignore_ws: Annotated[bool, typer.Option("--ignore-ws")] = False,
+    ignore_trail: Annotated[bool, typer.Option("--ignore-trail")] = False,
+    full_msg: Annotated[bool, typer.Option()] = True,
+):
+    current_dir = os.getcwd()
+    full_file_path = os.path.join(current_dir, file_path)
+
+    try:
+        with open(full_file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+
+            char_count = 0
+            prev_char = ""
+            for char in content:
+                if ignore_ws and char.isspace():
+                    pass
+                elif ignore_trail and char.isspace() and prev_char.isspace():
+                    pass
+                else:
+                    char_count += 1
+                prev_char = char
+
+            if ignore_trail:
+                if content[0].isspace():
+                    char_count -= 1
+                if content[-1].isspace():
+                    char_count -= 1
+
+            print(f"Character count: {char_count}" if full_msg else char_count)
+    except FileNotFoundError:
+        if full_msg:
+            print(f"The file '{full_file_path}' does not exist.")
+
+
 if __name__ == "__main__":
     app()
