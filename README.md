@@ -9,7 +9,7 @@ A multiuse utility CLI tool developed using:
 ## 🛠 Features
 
 - [x] Calculate the value of an expression
-- [x] Count the number of characters in a text file
+- [x] Count the quantity of characters in a text file
 - [x] Solve percentage equations
 - [x] Generate random numbers
 - [x] Stardardize the names of the files in a directory
@@ -24,15 +24,9 @@ $ python3 -m pip install blossy
 
 ## ⚙️ Behavior
 
-To have full instructions on how to use the CLI, run the following command:
+### 🧮 Calculate
 
-```bash
-$ blossy --help
-```
-
-### Calculate
-
-This command will calculate the value of an expression. The following operators are supported:
+To calculate the value of an expression, use the `calc` command. The following operators are supported:
 
 - (expr)
 - \+ expr
@@ -43,14 +37,12 @@ This command will calculate the value of an expression. The following operators 
 - expr + expr
 - expr - expr
 
-Here's an example of how to use the command:
-
 ```bash
 $ blossy calc "2*3+4^6"
 4102
 ```
 
-You can also use the `--visualize` flag to see the steps of the calculation, illustrated using postfix notation and a stack:
+You can use the `--visualize` flag to see the steps of the calculation, illustrated using postfix notation and a stack.
 
 ```bash
 $ blossy calc "2*3+4^6" --visualize
@@ -88,32 +80,48 @@ $ 4102                                                                    $
 > The result is 4102
 ```
 
-### Count
+### 🔢 Count
 
-This command will count the number of characters in a text file. Here's an example of how to use the command:
+To count the quantity of characters in a text file, use the `calc` command.
 
 ```bash
 $ blossy count file.txt 
-Character count: 25
+Character count: 58
 ```
 
-Using the `--ignore-unnec` flag, unnecessary whitespaces will be ignored. That way, a sequence of whitespaces will be counted as only one character:
+```
+Blossy is my favorite puppy.
+
+Did somebody say meatloaf?
+
+
+```
+
+You can use the `--ignore-unnec` flag to ignore unnecessary whitespaces. That way, a sequence of whitespaces will be counted as only one character, and trailing whitespaces will be completely ignored.
 
 ```bash
 $ blossy count file.txt --ignore-unnec
-Character count: 21
+Character count: 55
 ```
 
-Using the `--ignore-ws` flag, all whitespaces will be ignored:
+```
+Blossy is my favorite puppy. Did somebody say meatloaf?
+```
+
+You can also use the `--ignore-ws` flag to ignore all whitespaces.
 
 ```bash
 $ blossy count file.txt --ignore-ws
-Character count: 20
+Character count: 47
 ```
 
-### Percentage
+```
+Blossyismyfavoritepuppy.Didsomebodysaymeatloaf?
+```
 
-This command will solve percentage equations using the formula `ratio = part/whole`. Here's an example of how to use the command:
+### 📊 Percentage
+
+To solve percentage equations, use the `perc` command. This command uses the formula `ratio = part/whole`.
 
 ```bash
 $ blossy perc --whole 100 --ratio 0.25
@@ -122,38 +130,62 @@ $ blossy perc --whole 100 --part 25
 Ratio: 0.25
 ```
 
-### Random
+### 🎲 Random
 
-This command will generate a random number between two given values (inclusive). Here's an example of how to use the command:
+To generate a random number between two given values (inclusive), use the `rand` command.
 
 ```bash
 $ blossy rand 1 10
 2
 ```
 
-You can also specify the quantity of random numbers to be generated (the default is 1):
+You can specify the quantity of random numbers that'll be generated (the default is 1):
 
 ```bash
 $ blossy rand 1 10 --quantity 5
 2 7 1 5 1
 ```
 
-### Standardize
+### 🗂️ Standardize
 
-This command will standardize the names of the files in a directory, using the format `{prefix}-{id}`. Here's an example of how to use the command:
+To rename the files in a directory, using the format `{prefix}-{id}`, use the `stddz` command. Here's an example of how to use the command:
 
 ```bash
-$ blossy stddz name folder/
+$ blossy stddz my-johnson nice-folder/
+```
+
+```
+nice-folder/
+├── my-johnson-000.png
+├── my-johnson-001.png
+├── my-johnson-002.png
+└── my-johnson-003.png
 ```
 
 You can use the flag `--start` to specify the starting number for the IDs:
 
 ```bash
-$ blossy stddz name folder/ --start 10
+$ blossy stddz my-johnson nice-folder/ --start 10
 ```
 
-You can also use the flag `--digits` to specify the quantity of digits used to represent the IDs (the default is 3):
+```
+nice-folder/
+├── my-johnson-010.png
+├── my-johnson-011.png
+├── my-johnson-012.png
+└── my-johnson-013.png
+```
+
+You can also use the flag `--digits` to specify the quantity of digits that'll be used to represent the IDs (the default is 3):
 
 ```bash
-$ blossy stddz name folder/ --digits 2
+$ blossy stddz my-johnson nice-folder/ --digits 2
+```
+
+```
+nice-folder/
+├── my-johnson-00.png
+├── my-johnson-01.png
+├── my-johnson-02.png
+└── my-johnson-03.png
 ```
