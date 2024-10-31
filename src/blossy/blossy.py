@@ -12,63 +12,6 @@ app = typer.Typer(name="blossy", help="A lil' bud that helps you with stuff (it'
 
 
 @app.command()
-def perc(
-    whole: Annotated[float, typer.Option("--whole", "-w", show_default=False)] = None,
-    part: Annotated[float, typer.Option("--part", "-p", show_default=False)] = None,
-    ratio: Annotated[float, typer.Option("--ratio", "-r", show_default=False)] = None,
-    full_msg: Annotated[bool, typer.Option(help="Show full message.")] = True,
-):
-    """
-    PERCENTAGE
-
-    Take two of the three percentage-related options and calculate the remaining one.
-
-    Example:\n
-    $ blossy perc --whole 100 --part 25\n
-    Ratio: 0.25
-    """
-
-    if whole is not None and part is not None:
-        ratio = part/whole
-        print(f"Ratio: {ratio}" if full_msg else ratio)
-    elif whole is not None and ratio is not None:
-        part = whole*ratio
-        print(f"Part: {part}" if full_msg else part)
-    elif part is not None and ratio is not None:
-        whole = part/ratio
-        print(f"Whole: {whole}" if full_msg else whole)
-    else:
-        raise typer.BadParameter("Two options must be passed.")
-
-
-@app.command()
-def rand(
-    lower: Annotated[
-        int,
-        typer.Argument(show_default=False, help="Lower limit (inclusive)."),
-    ],
-    upper: Annotated[
-        int,
-        typer.Argument(show_default=False, help="Upper limit (inclusive)."),
-    ],
-    quantity: Annotated[
-        int,
-        typer.Option("--quantity", "-q", help="Quantity of random numbers to generate."),
-    ] = 1,
-):
-    """
-    RANDOM
-
-    Generate a random number between 'lower' an 'upper'.
-    """
-
-    for i in range(quantity):
-        number = random.randint(lower, upper)
-        end_char = " " if i < (quantity-1) else "\n"
-        print(number, end=end_char)
-
-
-@app.command()
 def calc(
     expression: Annotated[
         str,
@@ -129,48 +72,6 @@ def calc(
 
 
 @app.command()
-def stddz(
-    prefix: Annotated[
-        str,
-        typer.Argument(show_default=False, help="Prefix of the files."),
-    ],
-    directory: Annotated[
-        str,
-        typer.Argument(show_default=False, help="Relative path to the directory."),
-    ],
-    starting_number: Annotated[
-        int,
-        typer.Option("--start", "-s", help="Starting number for the IDs."),
-    ] = 0,
-    qt_digits: Annotated[
-        int,
-        typer.Option("--digits", "-d", help="Quantity of digits used to represent the ID.")
-    ] = 3,
-):
-    """
-    STARDARDIZE
-
-    Rename all files in a DIRECTORY to '{PREFIX}-{ID}', in which the ID is
-    calculated incrementally.
-    """
-
-    dir_abs_path = os.path.abspath(directory)
-    files = [f for f in os.listdir(dir_abs_path) if os.path.isfile(os.path.join(dir_abs_path, f))]
-    last_id = starting_number + len(files) - 1
-    max_qt_digits = len(str(last_id))
-    qt_digits = max(qt_digits, max_qt_digits)
-
-    num = starting_number
-    for filename in files:
-        _, ext = os.path.splitext(filename)
-        num_str = f"{num:0{qt_digits}}"
-        new_file = f"{prefix}-{num_str}{ext}"
-        os.rename(os.path.join(dir_abs_path, filename), os.path.join(dir_abs_path, new_file))
-
-        num += 1
-
-
-@app.command()
 def count(
     file: Annotated[
         str,
@@ -223,6 +124,105 @@ def count(
     except FileNotFoundError:
         if full_msg:
             print(f"The file '{full_file_path}' does not exist.")
+
+
+@app.command()
+def perc(
+    whole: Annotated[float, typer.Option("--whole", "-w", show_default=False)] = None,
+    part: Annotated[float, typer.Option("--part", "-p", show_default=False)] = None,
+    ratio: Annotated[float, typer.Option("--ratio", "-r", show_default=False)] = None,
+    full_msg: Annotated[bool, typer.Option(help="Show full message.")] = True,
+):
+    """
+    PERCENTAGE
+
+    Take two of the three percentage-related options and calculate the remaining one.
+
+    Example:\n
+    $ blossy perc --whole 100 --part 25\n
+    Ratio: 0.25
+    """
+
+    if whole is not None and part is not None:
+        ratio = part/whole
+        print(f"Ratio: {ratio}" if full_msg else ratio)
+    elif whole is not None and ratio is not None:
+        part = whole*ratio
+        print(f"Part: {part}" if full_msg else part)
+    elif part is not None and ratio is not None:
+        whole = part/ratio
+        print(f"Whole: {whole}" if full_msg else whole)
+    else:
+        raise typer.BadParameter("Two options must be passed.")
+
+
+@app.command()
+def rand(
+    lower: Annotated[
+        int,
+        typer.Argument(show_default=False, help="Lower limit (inclusive)."),
+    ],
+    upper: Annotated[
+        int,
+        typer.Argument(show_default=False, help="Upper limit (inclusive)."),
+    ],
+    quantity: Annotated[
+        int,
+        typer.Option("--quantity", "-q", help="Quantity of random numbers to generate."),
+    ] = 1,
+):
+    """
+    RANDOM
+
+    Generate a random number between 'lower' an 'upper'.
+    """
+
+    for i in range(quantity):
+        number = random.randint(lower, upper)
+        end_char = " " if i < (quantity-1) else "\n"
+        print(number, end=end_char)
+
+
+@app.command()
+def stddz(
+    prefix: Annotated[
+        str,
+        typer.Argument(show_default=False, help="Prefix of the files."),
+    ],
+    directory: Annotated[
+        str,
+        typer.Argument(show_default=False, help="Relative path to the directory."),
+    ],
+    starting_number: Annotated[
+        int,
+        typer.Option("--start", "-s", help="Starting number for the IDs."),
+    ] = 0,
+    qt_digits: Annotated[
+        int,
+        typer.Option("--digits", "-d", help="Quantity of digits used to represent the ID.")
+    ] = 3,
+):
+    """
+    STARDARDIZE
+
+    Rename all files in a DIRECTORY to '{PREFIX}-{ID}', in which the ID is
+    calculated incrementally.
+    """
+
+    dir_abs_path = os.path.abspath(directory)
+    files = [f for f in os.listdir(dir_abs_path) if os.path.isfile(os.path.join(dir_abs_path, f))]
+    last_id = starting_number + len(files) - 1
+    max_qt_digits = len(str(last_id))
+    qt_digits = max(qt_digits, max_qt_digits)
+
+    num = starting_number
+    for filename in files:
+        _, ext = os.path.splitext(filename)
+        num_str = f"{num:0{qt_digits}}"
+        new_file = f"{prefix}-{num_str}{ext}"
+        os.rename(os.path.join(dir_abs_path, filename), os.path.join(dir_abs_path, new_file))
+
+        num += 1
 
 
 if __name__ == "__main__":
