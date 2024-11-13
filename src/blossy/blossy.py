@@ -2,11 +2,13 @@
 A lil' bud that helps you with stuff (it's a utility CLI).
 """
 
+from datetime import timedelta
 import random
 import os
 import typer
 from typing_extensions import Annotated
 from .calc import CalcLexer, CalcParser, VisualCalcParser, CalcVisualizer
+from .calct import CalcTimeLexer, CalcTimeParser
 
 app = typer.Typer(name="blossy", help="A lil' bud that helps you with stuff (it's a utility CLI).")
 
@@ -67,6 +69,71 @@ def calc(
         parser = CalcParser()
         result = parser.parse(lexer.tokenize(expression))
         print(result)
+    except Exception as e:
+        raise typer.BadParameter(str(e)) from e
+
+
+@app.command()
+def calct(
+    expression: Annotated[
+        str,
+        typer.Argument(show_default=False, help="Expression to be calculated."),
+    ],
+    # visualize: Annotated[
+    #     bool,
+    #     typer.Option(
+    #         "--visualize", "-v",
+    #         help="Show a visualization using postfix notation and a stack.",
+    #     ),
+    # ] = False,
+):
+    """
+    CALCULATE TIME
+
+    Calculate the value of a mathematical expression using time.
+
+    Available syntax:\n
+    • (expr)\n
+    • + expr\n
+    • - expr\n
+    • expr ^ expr\n
+    • expr * expr\n
+    • expr / expr\n
+    • expr + expr\n
+    • expr - expr
+    """
+    try:
+        # if visualize:
+        #     lexer = CalcLexer()
+        #     parser = VisualCalcParser()
+        #     result = parser.parse(lexer.tokenize(expression))
+        #     visualizer = CalcVisualizer(result)
+
+        #     for operation, stack_state, input_state in visualizer.visualize():
+        #         if operation:
+        #             print(f"> {operation}")
+        #         if stack_state and input_state:
+        #             print()
+        #             terminal_width = os.get_terminal_size().columns
+        #             left_side = stack_state
+        #             right_side = input_state
+        #             padding = terminal_width - len(left_side) - len(right_side)
+        #             if padding > 0:
+        #                 print(left_side + " " * padding + right_side)
+        #             else:
+        #                 print(left_side + "\t" + right_side)
+        #         input()
+        #     return
+
+        lexer = CalcTimeLexer()
+        parser = CalcTimeParser()
+        result_time: timedelta = parser.parse(lexer.tokenize(expression))
+
+        total_seconds = int(result_time.total_seconds())
+        hours, remainder = divmod(total_seconds, 60*60)
+        minutes, seconds = divmod(remainder, 60)
+
+        print(f"{hours:02}:{minutes:02}:{seconds:02}")
     except Exception as e:
         raise typer.BadParameter(str(e)) from e
 
