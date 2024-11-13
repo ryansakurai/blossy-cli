@@ -2,7 +2,7 @@
 Module dedicated to functionalities of the 'calct' command
 """
 from datetime import timedelta
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 from sly import Lexer, Parser
 from sly.lex import Token
 from sly.yacc import YaccProduction
@@ -147,153 +147,230 @@ class CalcTimeParser(Parser):
         return float(prod.FLOAT_CONST)
 
 
-# class VisualCalcTimeParser(Parser):
-#     tokens = CalcTimeLexer.tokens
+class VisualCalcTimeParser(Parser):
+    tokens = CalcTimeLexer.tokens
 
-#     precedence = (
-#         ("left", "PLUS", "MINUS"),
-#         ("left", "TIMES", "DIVIDE"),
-#         ("right", "EXPONENT", "UNARY_PLUS", "UNARY_MINUS"),
-#     )
+    precedence = (
+        ("left", "PLUS", "MINUS"),
+        ("left", "TIMES", "DIVIDE"),
+        ("right", "EXPONENT", "UNARY_PLUS", "UNARY_MINUS"),
+    )
 
-#     def error(self, token: Optional[Token]):
-#         if token:
-#             raise ParsingError(f"Operation absent or used incorrectly near index {token.index}")
-#         raise ParsingError("Operation absent or used incorrectly near the end of input")
+    def error(self, token: Optional[Token]):
+        if token:
+            raise ParsingError(f"Operation absent or used incorrectly near index {token.index}")
+        raise ParsingError("Operation absent or used incorrectly near the end of input")
 
 
-#     @_("expression")
-#     def start(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression
+    @_("expression")
+    def start(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        if prod.expression["type"] == "number":
+            raise ParsingError("Result is not time (use 'calc' instead)")
 
-#     @_("expression PLUS expression")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression0 + prod.expression1 + ("+₂", )
+        return prod.expression["value"]
 
-#     @_("expression MINUS expression")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression0 + prod.expression1 + ("-₂", )
+    @_("expression PLUS expression")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        if prod.expression0["type"] == "time" and prod.expression1["type"] == "number":
+            raise ParsingError("Number being added to time " + \
+                               f"near index {prod.index}")
+        if prod.expression0["type"] == "number" and prod.expression1["type"] == "time":
+            raise ParsingError("Time being added to number " + \
+                               f"near index {prod.index}")
 
-#     @_("expression TIMES expression")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression0 + prod.expression1 + ("*", )
+        return {
+            "value": prod.expression0["value"] + prod.expression1["value"] + ("+₂", ),
+            "type": prod.expression0["type"],
+        }
 
-#     @_("expression DIVIDE expression")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression0 + prod.expression1 + ("/", )
+    @_("expression MINUS expression")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        if prod.expression0["type"] == "time" and prod.expression1["type"] == "number":
+            raise ParsingError("Number being subtracted from time " + \
+                               f"near index {prod.index}")
+        if prod.expression0["type"] == "number" and prod.expression1["type"] == "time":
+            raise ParsingError("Time being subtracted from number " + \
+                               f"near index {prod.index}")
 
-#     @_("expression EXPONENT expression")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression0 + prod.expression1 + ("^", )
+        return {
+            "value": prod.expression0["value"] + prod.expression1["value"] + ("-₂", ),
+            "type": prod.expression0["type"],
+        }
 
-#     @_("PLUS expression %prec UNARY_PLUS")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression + ("+₁", )
+    @_("expression TIMES expression")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        if prod.expression0["type"] == "time" and prod.expression1["type"] == "time":
+            raise ParsingError("Time being multiplied by time " + \
+                               f"near index {prod.index}")
 
-#     @_("MINUS expression %prec UNARY_MINUS")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression + ("-₁", )
+        if prod.expression0["type"] == "time" or prod.expression1["type"] == "time":
+            return_type = "time"
+        else:
+            return_type = "number"
 
-#     @_("L_PARENTH expression R_PARENTH")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return prod.expression
+        return {
+            "value": prod.expression0["value"] + prod.expression1["value"] + ("*", ),
+            "type": return_type,
+        }
 
-#     @_("number")
-#     def expression(self, prod: YaccProduction) -> Tuple[str]:
-#         return (prod.number, )
+    @_("expression DIVIDE expression")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        if prod.expression1["type"] == "time":
+            raise ParsingError(f"Time used as divisor near index {prod.index}")
 
-#     @_("INT_CONST")
-#     def number(self, prod: YaccProduction) -> int:
-#         return prod.INT_CONST
+        return {
+            "value": prod.expression0["value"] + prod.expression1["value"] + ("/", ),
+            "type": prod.expression0["type"],
+        }
 
-#     @_("FLOAT_CONST")
-#     def number(self, prod: YaccProduction) -> float:
-#         return prod.FLOAT_CONST
+    @_("expression EXPONENT expression")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        if prod.expression0["type"] == "time" or prod.expression1["type"] == "time":
+            raise ParsingError(f"Operation {prod.EXPONENT} used with time " + \
+                               f"near index {prod.index}")
 
-# class CalcVisualizer:
-#     UNARY_OPERATORS = ("+₁", "-₁")
-#     BINARY_OPERATORS = ("+₂", "-₂", "*", "/", "^")
+        return {
+            "value": prod.expression0["value"] + prod.expression1["value"] + ("^", ),
+            "type": prod.expression0["type"],
+        }
 
-#     def __init__(self, values: Tuple[str]) -> None:
-#         self.values_tuple = values
+    @_("PLUS expression %prec UNARY_PLUS")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        prod.expression["value"] += ("+₁", )
+        return prod.expression
 
-#     def visualize(self):
-#         stack: List[str] = ["$"]
-#         values = list(self.values_tuple) + ["$"]
-#         yield None, " ".join(stack), " ".join(values)
+    @_("MINUS expression %prec UNARY_MINUS")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        prod.expression["value"] += ("-₁", )
+        return prod.expression
 
-#         while len(values) > 1:
-#             value = values[0]
-#             values.pop(0)
+    @_("L_PARENTH expression R_PARENTH")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        return prod.expression
 
-#             if value in self.UNARY_OPERATORS:
-#                 operand = stack.pop()
-#                 operator = value
-#                 result, operation = self.__handle_unary(operator, operand)
-#                 stack.append(result)
-#             elif value in self.BINARY_OPERATORS:
-#                 operand2 = stack.pop()
-#                 operand1 = stack.pop()
-#                 operator = value
-#                 result, operation = self.__handle_binary(operator, operand1, operand2)
-#                 stack.append(result)
-#             else:
-#                 number = value
-#                 stack.append(number)
-#                 operation = f"Stack {number}"
+    @_("operand")
+    def expression(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        prod.operand["value"] = (prod.operand["value"], )
+        return prod.operand
 
-#             stack_str = " ".join(stack)
-#             values_str = " ".join(values)
-#             yield operation, stack_str, values_str
+    @_("TIME_CONST")
+    def operand(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        return {
+            "value": prod.TIME_CONST,
+            "type": "time",
+        }
 
-#         final_result = stack.pop()
-#         final_result = self.___to_num(final_result)
-#         final_result = round(final_result, 2)
-#         yield f"The result is {final_result}", None, None
+    @_("INT_CONST", "FLOAT_CONST")
+    def operand(self, prod: YaccProduction) -> Dict[str, Tuple[str]|str]:
+        return {
+            "value": getattr(prod, "INT_CONST") or getattr(prod, "FLOAT_CONST"),
+            "type": "number",
+        }
 
-#     def ___to_num(self, num: str) -> int|float:
-#         return float(num) if "." in num else int(num)
 
-#     def __handle_unary(self,
-#                        operator: str,
-#                        operand: str) -> Tuple[str, str]:
-#         match operator:
-#             case "+₁":
-#                 result = self.___to_num(operand)
-#                 operation = f"+{operand} = {result}"
-#             case "-₁":
-#                 result = 0 - self.___to_num(operand)
-#                 operation = f"-{operand} = {result}"
+class CalcTimeVisualizer:
+    UNARY_OPERATORS = ("+₁", "-₁")
+    BINARY_OPERATORS = ("+₂", "-₂", "*", "/", "^")
 
-#         return str(result), operation
+    def __init__(self, values: Tuple[str]) -> None:
+        self.values_tuple = values
 
-#     def __handle_binary(self,
-#                        operator: str,
-#                        operand1: int|float,
-#                        operand2: int|float) -> Tuple[int|float, str]:
-#         match operator:
-#             case "+₂":
-#                 result = self.___to_num(operand1) + self.___to_num(operand2)
-#                 operation = f"{operand1} + {operand2} = {result}"
-#             case "-₂":
-#                 result = self.___to_num(operand1) - self.___to_num(operand2)
-#                 operation = f"{operand1} - {operand2} = {result}"
-#             case "*":
-#                 result = self.___to_num(operand1) * self.___to_num(operand2)
-#                 result = self.__trim_num(result)
-#                 operation = f"{operand1} * {operand2} = {result}"
-#             case "/":
-#                 result = self.___to_num(operand1) / self.___to_num(operand2)
-#                 result = self.__trim_num(result)
-#                 operation = f"{operand1} / {operand2} = {result}"
-#             case "^":
-#                 result = self.___to_num(operand1) ** self.___to_num(operand2)
-#                 result = self.__trim_num(result)
-#                 operation = f"{operand1}^{operand2} = {result}"
+    def visualize(self):
+        stack: List[str] = ["$"]
+        values = list(self.values_tuple) + ["$"]
+        yield None, " ".join(stack), " ".join(values)
 
-#         return str(result), operation
+        while len(values) > 1:
+            value = values[0]
+            values.pop(0)
 
-#     def __trim_num(self, num: int|float) -> int|float:
-#         if isinstance(num, int):
-#             return num
-#         return int(num) if num.is_integer() else num
+            if value in self.UNARY_OPERATORS:
+                operand = stack.pop()
+                operator = value
+                result, operation = self.__handle_unary(operator, operand)
+                stack.append(result)
+            elif value in self.BINARY_OPERATORS:
+                operand2 = stack.pop()
+                operand1 = stack.pop()
+                operator = value
+                result, operation = self.__handle_binary(operator, operand1, operand2)
+                stack.append(result)
+            else:
+                number = value
+                stack.append(number)
+                operation = f"Stack {number}"
+
+            stack_str = " ".join(stack)
+            values_str = " ".join(values)
+            yield operation, stack_str, values_str
+
+        final_result = stack.pop()
+        yield f"The result is {final_result}", None, None
+
+    def __from_str(self, operand: str) -> timedelta|int|float:
+        if ":" in operand:
+            parts = tuple(map(int, operand.split(":")))
+            if len(parts) == 3:
+                value = timedelta(hours=parts[-3], minutes=parts[-2], seconds=parts[-1])
+            else:
+                value = timedelta(minutes=parts[-2], seconds=parts[-1])
+            return value
+        if "." in operand:
+            float(operand)
+        return int(operand)
+
+    def __to_str(self, operand: timedelta|int|float) -> str:
+        if isinstance(operand, timedelta):
+            total_seconds = int(operand.total_seconds())
+            hours, remainder = divmod(total_seconds, 60*60)
+            minutes, seconds = divmod(remainder, 60)
+            return f"{hours:02}:{minutes:02}:{seconds:02}"
+        if isinstance(operand, float):
+            operand = int(operand) if operand.is_integer() else operand
+            return str(operand)
+        return str(operand)
+
+    def __handle_unary(self,
+                       operator: str,
+                       operand: str) -> Tuple[str, str]:
+        match operator:
+            case "+₁":
+                result = operand
+                operation = f"+{operand} = {result}"
+            case "-₁":
+                if isinstance(operand, timedelta):
+                    result = timedelta() - self.__from_str(operand)
+                else:
+                    result = 0 - self.__from_str(operand)
+                result = self.__to_str(result)
+                operation = f"-{operand} = {result}"
+
+        return result, operation
+
+    def __handle_binary(self,
+                       operator: str,
+                       operand1: timedelta|int|float,
+                       operand2: timedelta|int|float) -> Tuple[timedelta|int|float, str]:
+        match operator:
+            case "+₂":
+                result = self.__from_str(operand1) + self.__from_str(operand2)
+                result = self.__to_str(result)
+                operation = f"{operand1} + {operand2} = {result}"
+            case "-₂":
+                result = self.__from_str(operand1) - self.__from_str(operand2)
+                result = self.__to_str(result)
+                operation = f"{operand1} - {operand2} = {result}"
+            case "*":
+                result = self.__from_str(operand1) * self.__from_str(operand2)
+                result = self.__to_str(result)
+                operation = f"{operand1} * {operand2} = {result}"
+            case "/":
+                result = self.__from_str(operand1) / self.__from_str(operand2)
+                result = self.__to_str(result)
+                operation = f"{operand1} / {operand2} = {result}"
+            case "^":
+                result = self.__from_str(operand1) ** self.__from_str(operand2)
+                result = self.__to_str(result)
+                operation = f"{operand1}^{operand2} = {result}"
+
+        return result, operation
