@@ -80,6 +80,54 @@ $ 4102                                                                    $
 > The result is 4102
 ```
 
+### ⌚ Calculate Time
+
+To calculate the value of an expression using time, use the `calct` command. The following operators are supported:
+
+- (expr)
+- \+ expr
+- \- expr
+- expr ^ expr
+- expr * expr
+- expr / expr
+- expr + expr
+- expr - expr
+
+```bash
+$ blossy calct "1:02:00 + 12:01*2"
+1:26:02
+```
+
+You can use the `--visualize` flag to see the steps of the calculation, illustrated using postfix notation and a stack.
+
+```bash
+$ blossy calct "1:02:00 + 12:01*2" --visualize
+
+$                                                    1:02:00 12:01 2 * +₂ $
+
+> Stack 1:02:00
+
+$ 1:02:00                                                    12:01 2 * +₂ $
+
+> Stack 12:01
+
+$ 1:02:00 12:01                                                    2 * +₂ $
+
+> Stack 2
+
+$ 1:02:00 12:01 2                                                    * +₂ $
+
+> 12:01 * 2 = 0:24:02
+
+$ 1:02:00 0:24:02                                                      +₂ $
+
+> 1:02:00 + 0:24:02 = 1:26:02
+
+$ 1:26:02                                                                 $
+
+> The result is 1:26:02
+```
+
 ### 🔢 Count
 
 To count the quantity of characters in a text file, use the `calc` command.
