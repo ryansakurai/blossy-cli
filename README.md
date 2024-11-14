@@ -9,6 +9,7 @@ A multiuse utility CLI tool developed using:
 ## 🛠 Features
 
 - [x] Calculate the value of an expression
+- [x] Calculate the value of an expression using time
 - [x] Count the quantity of characters in a text file
 - [x] Solve percentage equations
 - [x] Generate random numbers
