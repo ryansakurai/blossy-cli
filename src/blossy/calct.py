@@ -1,11 +1,78 @@
 """
 Module dedicated to functionalities of the 'calct' command
 """
-from datetime import timedelta
 from typing import Dict, List, Optional, Tuple
 from sly import Lexer, Parser
 from sly.lex import Token
 from sly.yacc import YaccProduction
+
+
+class Time:
+    def __init__(self, hours: int=0, minutes: int=0, seconds: int=0):
+        absolute = abs(seconds) + abs(minutes)*60 + abs(hours)*60*60
+        if hours < 0 or minutes < 0 or seconds < 0:
+            self.__total_secs = 0 - absolute
+        else:
+            self.__total_secs = absolute
+
+    @property
+    def hours(self) -> int:
+        absolute = abs(self.__total_secs) // (60*60)
+        return absolute if self.__total_secs >= 0 else 0 - absolute
+
+    @property
+    def minutes(self) -> int:
+        absolute = (abs(self.__total_secs) % (60*60)) // 60
+        return absolute if self.__total_secs >= 0 else 0 - absolute
+
+    @property
+    def seconds(self) -> int:
+        absolute = abs(self.__total_secs) % 60
+        return absolute if self.__total_secs >= 0 else 0 - absolute
+
+    @property
+    def total_hours(self) -> int:
+        absolute = abs(self.__total_secs) // (60*60)
+        return absolute if self.__total_secs >= 0 else 0 - absolute
+
+    @property
+    def total_minutes(self) -> int:
+        absolute = abs(self.__total_secs) // 60
+        return absolute if self.__total_secs >= 0 else 0 - absolute
+
+    @property
+    def total_seconds(self) -> int:
+        return self.__total_secs
+
+    def __add__(self, other):
+        if isinstance(other, Time):
+            return Time(seconds=self.total_seconds + other.total_seconds)
+        raise TypeError(f"unsupported operand type(s) for +: 'Time' and '{type(other).__name__}'")
+
+    def __sub__(self, other):
+        if isinstance(other, Time):
+            return Time(seconds=self.total_seconds - other.total_seconds)
+        raise TypeError(f"unsupported operand type(s) for -: 'Time' and '{type(other).__name__}'")
+
+    def __mul__(self, other):
+        if isinstance(other, (int, float)):
+            return Time(seconds=int(self.total_seconds * other))
+        raise TypeError(f"unsupported operand type(s) for *: 'Time' and '{type(other).__name__}'")
+
+    def __rmul__(self, other):
+        if isinstance(other, (int, float)):
+            return Time(seconds=int(self.total_seconds * other))
+        raise TypeError(f"unsupported operand type(s) for *: '{type(other).__name__}' and 'Time'")
+
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            return Time(seconds=int(self.total_seconds / other))
+        raise TypeError(f"unsupported operand type(s) for /: 'Time' and '{type(other).__name__}'")
+
+    def __str__(self):
+        if self.total_seconds < 0:
+            return f"-{abs(self.hours)}:{abs(self.minutes):02}:{abs(self.seconds):02}"
+        return f"{abs(self.hours)}:{abs(self.minutes):02}:{abs(self.seconds):02}"
 
 
 class CalcTimeLexer(Lexer):
@@ -59,82 +126,82 @@ class CalcTimeParser(Parser):
 
 
     @_("expression")
-    def start(self, prod: YaccProduction) -> timedelta:
-        if not isinstance(prod.expression, timedelta):
+    def start(self, prod: YaccProduction) -> Time:
+        if not isinstance(prod.expression, Time):
             raise ParsingError("Result is not time (use 'calc' instead)")
 
         return prod.expression
 
     @_("expression PLUS expression")
-    def expression(self, prod: YaccProduction) -> timedelta|int|float:
-        if isinstance(prod.expression0, timedelta) and not isinstance(prod.expression1, timedelta):
+    def expression(self, prod: YaccProduction) -> Time|int|float:
+        if isinstance(prod.expression0, Time) and not isinstance(prod.expression1, Time):
             raise ParsingError("Number being added to time " + \
                                f"near index {prod.index}")
-        if not isinstance(prod.expression0, timedelta) and isinstance(prod.expression1, timedelta):
+        if not isinstance(prod.expression0, Time) and isinstance(prod.expression1, Time):
             raise ParsingError("Time being added to number " + \
                                f"near index {prod.index}")
 
         return prod.expression0 + prod.expression1
 
     @_("expression MINUS expression")
-    def expression(self, prod: YaccProduction) -> timedelta|int|float:
-        if isinstance(prod.expression0, timedelta) and not isinstance(prod.expression1, timedelta):
+    def expression(self, prod: YaccProduction) -> Time|int|float:
+        if isinstance(prod.expression0, Time) and not isinstance(prod.expression1, Time):
             raise ParsingError("Number being subtracted from time " + \
                                f"near index {prod.index}")
-        if not isinstance(prod.expression0, timedelta) and isinstance(prod.expression1, timedelta):
+        if not isinstance(prod.expression0, Time) and isinstance(prod.expression1, Time):
             raise ParsingError("Time being subtracted from number " + \
                                f"near index {prod.index}")
 
         return prod.expression0 - prod.expression1
 
     @_("expression TIMES expression")
-    def expression(self, prod: YaccProduction) -> timedelta|int|float:
-        if isinstance(prod.expression0, timedelta) and isinstance(prod.expression1, timedelta):
+    def expression(self, prod: YaccProduction) -> Time|int|float:
+        if isinstance(prod.expression0, Time) and isinstance(prod.expression1, Time):
             raise ParsingError("Time being multiplied by time " + \
                                f"near index {prod.index}")
 
         return prod.expression0 * prod.expression1
 
     @_("expression DIVIDE expression")
-    def expression(self, prod: YaccProduction) -> timedelta|int|float:
-        if isinstance(prod.expression1, timedelta):
+    def expression(self, prod: YaccProduction) -> Time|int|float:
+        if isinstance(prod.expression1, Time):
             raise ParsingError(f"Time used as divisor near index {prod.index}")
 
         return prod.expression0 / prod.expression1
 
     @_("expression EXPONENT expression")
     def expression(self, prod: YaccProduction) -> int|float:
-        if isinstance(prod.expression0, timedelta) or isinstance(prod.expression1, timedelta):
+        if isinstance(prod.expression0, Time) or isinstance(prod.expression1, Time):
             raise ParsingError(f"Operation {prod.EXPONENT} used with time " + \
                                f"near index {prod.index}")
 
         return prod.expression0 ** prod.expression1
 
     @_("PLUS expression %prec UNARY_PLUS")
-    def expression(self, prod: YaccProduction) -> timedelta|int|float:
+    def expression(self, prod: YaccProduction) -> Time|int|float:
         return prod.expression
 
     @_("MINUS expression %prec UNARY_MINUS")
-    def expression(self, prod: YaccProduction) -> timedelta|int|float:
-        if isinstance(prod.expression, timedelta):
-            return timedelta() - prod.expression
+    def expression(self, prod: YaccProduction) -> Time|int|float:
+        if isinstance(prod.expression, Time):
+            return Time() - prod.expression
         return 0 - prod.expression
 
     @_("L_PARENTH expression R_PARENTH")
-    def expression(self, prod: YaccProduction) -> timedelta|int|float:
+    def expression(self, prod: YaccProduction) -> Time|int|float:
         return prod.expression
 
     @_("operand")
-    def expression(self, prod: YaccProduction) -> timedelta|int|float:
+    def expression(self, prod: YaccProduction) -> Time|int|float:
         return prod.operand
 
     @_("TIME_CONST")
-    def operand(self, prod: YaccProduction) -> timedelta:
+    def operand(self, prod: YaccProduction) -> Time:
         parts = tuple(map(int, prod.TIME_CONST.split(":")))
         if len(parts) == 3:
-            value = timedelta(hours=parts[-3], minutes=parts[-2], seconds=parts[-1])
+            value = Time(hours=parts[-3], minutes=parts[-2], seconds=parts[-1])
         else:
-            value = timedelta(minutes=parts[-2], seconds=parts[-1])
+            value = Time(minutes=parts[-2], seconds=parts[-1])
 
         return value
 
@@ -307,27 +374,21 @@ class CalcTimeVisualizer:
         final_result = stack.pop()
         yield f"The result is {final_result}", None, None
 
-    def __from_str(self, operand: str) -> timedelta|int|float:
+    def __from_str(self, operand: str) -> Time|int|float:
         if ":" in operand:
             parts = tuple(map(int, operand.split(":")))
             if len(parts) == 3:
-                value = timedelta(hours=parts[-3], minutes=parts[-2], seconds=parts[-1])
+                value = Time(hours=parts[-3], minutes=parts[-2], seconds=parts[-1])
             else:
-                value = timedelta(minutes=parts[-2], seconds=parts[-1])
+                value = Time(minutes=parts[-2], seconds=parts[-1])
             return value
         if "." in operand:
             float(operand)
         return int(operand)
 
-    def __to_str(self, operand: timedelta|int|float) -> str:
-        if isinstance(operand, timedelta):
-            total_seconds = int(operand.total_seconds())
-            hours, remainder = divmod(total_seconds, 60*60)
-            minutes, seconds = divmod(remainder, 60)
-            return f"{hours:02}:{minutes:02}:{seconds:02}"
+    def __to_str(self, operand: Time|int|float) -> str:
         if isinstance(operand, float):
             operand = int(operand) if operand.is_integer() else operand
-            return str(operand)
         return str(operand)
 
     def __handle_unary(self,
@@ -338,8 +399,8 @@ class CalcTimeVisualizer:
                 result = operand
                 operation = f"+{operand} = {result}"
             case "-₁":
-                if isinstance(operand, timedelta):
-                    result = timedelta() - self.__from_str(operand)
+                if isinstance(operand, Time):
+                    result = Time() - self.__from_str(operand)
                 else:
                     result = 0 - self.__from_str(operand)
                 result = self.__to_str(result)
@@ -349,8 +410,8 @@ class CalcTimeVisualizer:
 
     def __handle_binary(self,
                        operator: str,
-                       operand1: timedelta|int|float,
-                       operand2: timedelta|int|float) -> Tuple[timedelta|int|float, str]:
+                       operand1: str,
+                       operand2: str) -> Tuple[str, str]:
         match operator:
             case "+₂":
                 result = self.__from_str(operand1) + self.__from_str(operand2)

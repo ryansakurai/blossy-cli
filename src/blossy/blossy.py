@@ -2,7 +2,6 @@
 A lil' bud that helps you with stuff (it's a utility CLI).
 """
 
-from datetime import timedelta
 import random
 import os
 import typer
@@ -127,12 +126,8 @@ def calct(
 
         lexer = CalcTimeLexer()
         parser = CalcTimeParser()
-        result_time: timedelta = parser.parse(lexer.tokenize(expression))
-
-        total_seconds = int(result_time.total_seconds())
-        hours, remainder = divmod(total_seconds, 60*60)
-        minutes, seconds = divmod(remainder, 60)
-        print(f"{hours:02}:{minutes:02}:{seconds:02}")
+        result = parser.parse(lexer.tokenize(expression))
+        print(result)
     except Exception as e:
         raise typer.BadParameter(str(e)) from e
 
