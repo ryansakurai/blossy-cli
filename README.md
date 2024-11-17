@@ -2,9 +2,9 @@
 
 A multiuse utility CLI tool developed using:
 
-- Python
-- Typer (CLI building)
-- Sly Lex Yacc (parsing)
+- Python;
+- Typer: building the CLI;
+- Sly Lex Yacc: parsing text.
 
 ## 🛠 Features
 
