@@ -162,23 +162,30 @@ def countc(
 
     try:
         with open(full_file_path, "r", encoding="utf-8") as file:
-            content = file.read()
-
             char_count = 0
+            first_char = ""
             prev_char = ""
-            for char in content:
+            while True:
+                char = file.read(1)
+                if not char:
+                    break
+
                 if ignore_ws and char.isspace():
                     pass
                 elif ignore_unnec and char.isspace() and prev_char.isspace():
                     pass
                 else:
                     char_count += 1
+
+                if prev_char == "":
+                    first_char = char
                 prev_char = char
 
+            last_char = prev_char
             if ignore_unnec:
-                if content[0].isspace():
+                if first_char.isspace():
                     char_count -= 1
-                if content[-1].isspace():
+                if last_char.isspace():
                     char_count -= 1
 
             print(f"Character count: {char_count}" if full_msg else char_count)
