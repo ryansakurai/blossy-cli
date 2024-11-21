@@ -133,7 +133,7 @@ def calct(
 
 
 @app.command()
-def count(
+def countc(
     file: Annotated[
         str,
         typer.Argument(show_default=False, help="Relative path to the file."),
@@ -152,7 +152,7 @@ def count(
     ] = True,
 ):
     """
-    COUNT
+    COUNT CHARACTERS
 
     Count the amount of characters in a text file.
     """
@@ -182,6 +182,44 @@ def count(
                     char_count -= 1
 
             print(f"Character count: {char_count}" if full_msg else char_count)
+    except FileNotFoundError:
+        if full_msg:
+            print(f"The file '{full_file_path}' does not exist.")
+
+
+@app.command()
+def countl(
+    file: Annotated[
+        str,
+        typer.Argument(show_default=False, help="Relative path to the file."),
+    ],
+    ignore_blank: Annotated[
+        bool,
+        typer.Option(help="Ignore all blank lines."),
+    ] = True,
+    full_msg: Annotated[
+        bool,
+        typer.Option(help="Show full message.")
+    ] = True,
+):
+    """
+    COUNT LINES
+
+    Count the amount of lines in a code source file.
+    """
+
+    current_dir = os.getcwd()
+    full_file_path = os.path.join(current_dir, file)
+
+    try:
+        with open(full_file_path, "r", encoding="utf-8") as file:
+            line_count = 0
+            for line in file:
+                if ignore_blank and (line.isspace() or len(line) == 0):
+                    continue
+                line_count += 1
+
+            print(f"Line count: {line_count}" if full_msg else line_count)
     except FileNotFoundError:
         if full_msg:
             print(f"The file '{full_file_path}' does not exist.")
