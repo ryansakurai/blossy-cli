@@ -4,6 +4,8 @@ A lil' bud that helps you with stuff (it's a utility CLI).
 
 import random
 import os
+import string
+from typing import List, Tuple
 import typer
 from typing_extensions import Annotated
 from .calc import CalcLexer, CalcParser, VisualCalcParser, CalcVisualizer
@@ -299,7 +301,7 @@ def stddz(
         str,
         typer.Argument(show_default=False, help="Relative path to the directory."),
     ],
-    starting_number: Annotated[
+    start_idx: Annotated[
         int,
         typer.Option("--start", "-s", help="Starting number for the IDs."),
     ] = 0,
@@ -316,19 +318,43 @@ def stddz(
     """
 
     dir_abs_path = os.path.abspath(directory)
-    files = [f for f in os.listdir(dir_abs_path) if os.path.isfile(os.path.join(dir_abs_path, f))]
-    last_id = starting_number + len(files) - 1
+    files = get_files(dir_abs_path)
+
+    last_id = start_idx + len(files) - 1
     max_qt_digits = len(str(last_id))
     qt_digits = max(qt_digits, max_qt_digits)
 
-    num = starting_number
+    # to prevent overriding previous files
+    temp_prefix = "".join(random.choices(string.ascii_letters, k=10))
+    rename(dir_abs_path, files, temp_prefix, qt_digits, start_idx)
+
+    files = get_files(dir_abs_path)
+    rename(dir_abs_path, files, prefix, qt_digits, start_idx)
+
+def get_files(directory_path: str) -> Tuple[str]:
+    files = []
+    for item in os.listdir(directory_path):
+        file_abs_path = os.path.join(directory_path, item)
+        if os.path.isfile(file_abs_path):
+            files.append(item)
+    return tuple(files)
+
+def rename(dir_path: str,
+           files: List[str],
+           prefix: str,
+           qt_digits: int,
+           start_idx: int) -> None:
+    idx = start_idx
     for filename in files:
         _, ext = os.path.splitext(filename)
-        num_str = f"{num:0{qt_digits}}"
-        new_file = f"{prefix}-{num_str}{ext}"
-        os.rename(os.path.join(dir_abs_path, filename), os.path.join(dir_abs_path, new_file))
+        new_file = build_file_name(prefix, idx, qt_digits) + ext
+        os.rename(os.path.join(dir_path, filename), os.path.join(dir_path, new_file))
 
-        num += 1
+        idx += 1
+
+def build_file_name(prefix: str, index: int, qt_digits: int) -> str:
+    num_str = f"{index:0{qt_digits}}"
+    return f"{prefix}-{num_str}"
 
 
 if __name__ == "__main__":
