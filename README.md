@@ -138,6 +138,18 @@ $ blossy countc file.txt
 Character count: 58
 ```
 
+*Full file:*
+
+```
+Blossy is my favorite puppy.
+
+Did somebody say meatloaf?
+
+
+```
+
+*What is counted:*
+
 ```
 Blossy is my favorite puppy.
 
@@ -153,6 +165,18 @@ $ blossy countc file.txt --ignore-unnec
 Character count: 55
 ```
 
+*Full file:*
+
+```
+Blossy is my favorite puppy.
+
+Did somebody say meatloaf?
+
+
+```
+
+*What is counted:*
+
 ```
 Blossy is my favorite puppy. Did somebody say meatloaf?
 ```
@@ -163,6 +187,18 @@ You can also use the `--ignore-ws` flag to ignore all whitespaces.
 $ blossy countc file.txt --ignore-ws
 Character count: 47
 ```
+
+*Full file:*
+
+```
+Blossy is my favorite puppy.
+
+Did somebody say meatloaf?
+
+
+```
+
+*What is counted:*
 
 ```
 Blossyismyfavoritepuppy.Didsomebodysaymeatloaf?
@@ -176,6 +212,22 @@ To count the quantity of lines in a code source file, use the `calcl` command.
 $ blossy countl one_piece.py
 Line count: 5
 ```
+
+*Full file:*
+
+```python
+import random
+
+luffy_is_king_of_the_pirates = False
+
+while not luffy_is_king_of_the_pirates:
+    luffy_is_king_of_the_pirates = random.choice((True, False))
+
+print("One Piece ended. Two Piece incoming...")
+
+```
+
+*What is counted:*
 
 ```python
 import random
@@ -191,6 +243,22 @@ You can use the `--no-ignore-blank` flag to count blank lines.
 $ blossy countl one_piece.py --no-ignore-blank
 Line count: 8
 ```
+
+*Full file:*
+
+```python
+import random
+
+luffy_is_king_of_the_pirates = False
+
+while not luffy_is_king_of_the_pirates:
+    luffy_is_king_of_the_pirates = random.choice((True, False))
+
+print("One Piece ended. Two Piece incoming...")
+
+```
+
+*What is counted:*
 
 ```python
 import random
