@@ -47,22 +47,15 @@ def calc(
         if visualize:
             lexer = CalcLexer()
             parser = VisualCalcParser()
-            result = parser.parse(lexer.tokenize(expression))
-            visualizer = CalcVisualizer(result)
+            postfixed_expr = parser.parse(lexer.tokenize(expression))
+            visualizer = CalcVisualizer(postfixed_expr)
 
             for operation, stack_state, input_state in visualizer.visualize():
                 if operation:
                     print(f"> {operation}")
                 if stack_state and input_state:
                     print()
-                    terminal_width = os.get_terminal_size().columns
-                    left_side = stack_state
-                    right_side = input_state
-                    padding = terminal_width - len(left_side) - len(right_side)
-                    if padding > 0:
-                        print(left_side + " " * padding + right_side)
-                    else:
-                        print(left_side + "\t" + right_side)
+                    print_with_padding(stack_state, input_state)
                 input()
             return
 
@@ -72,6 +65,14 @@ def calc(
         print(result)
     except Exception as e:
         raise typer.BadParameter(str(e)) from e
+
+def print_with_padding(left_side: str, right_side: str) -> None:
+    terminal_width = os.get_terminal_size().columns
+    padding = terminal_width - len(left_side) - len(right_side)
+    if padding > 0:
+        print(left_side + " " * padding + right_side)
+    else:
+        print(left_side + " " * 2 + right_side)
 
 
 @app.command()
@@ -107,22 +108,15 @@ def calct(
         if visualize:
             lexer = CalcTimeLexer()
             parser = VisualCalcTimeParser()
-            result = parser.parse(lexer.tokenize(expression))
-            visualizer = CalcTimeVisualizer(result)
+            postfixed_expr = parser.parse(lexer.tokenize(expression))
+            visualizer = CalcTimeVisualizer(postfixed_expr)
 
             for operation, stack_state, input_state in visualizer.visualize():
                 if operation:
                     print(f"> {operation}")
                 if stack_state and input_state:
                     print()
-                    terminal_width = os.get_terminal_size().columns
-                    left_side = stack_state
-                    right_side = input_state
-                    padding = terminal_width - len(left_side) - len(right_side)
-                    if padding > 0:
-                        print(left_side + " " * padding + right_side)
-                    else:
-                        print(left_side + "\t" + right_side)
+                    print_with_padding(stack_state, input_state)
                 input()
             return
 
@@ -160,10 +154,10 @@ def countc(
     """
 
     current_dir = os.getcwd()
-    full_file_path = os.path.join(current_dir, file)
+    file_abs_path = os.path.join(current_dir, file)
 
     try:
-        with open(full_file_path, "r", encoding="utf-8") as file:
+        with open(file_abs_path, "r", encoding="utf-8") as file:
             char_count = 0
             first_char = ""
             prev_char = ""
@@ -191,9 +185,10 @@ def countc(
                     char_count -= 1
 
             print(f"Character count: {char_count}" if full_msg else char_count)
-    except FileNotFoundError:
-        if full_msg:
-            print(f"The file '{full_file_path}' does not exist.")
+    except FileNotFoundError as e:
+        raise typer.BadParameter(f"'{file_abs_path}' does not exist.") from e
+    except IsADirectoryError as e:
+        raise typer.BadParameter(f"'{file_abs_path}' is not a file.") from e
 
 
 @app.command()
@@ -218,10 +213,10 @@ def countl(
     """
 
     current_dir = os.getcwd()
-    full_file_path = os.path.join(current_dir, file)
+    file_abs_path = os.path.join(current_dir, file)
 
     try:
-        with open(full_file_path, "r", encoding="utf-8") as file:
+        with open(file_abs_path, "r", encoding="utf-8") as file:
             line_count = 0
             for line in file:
                 if ignore_blank and (line.isspace() or len(line) == 0):
@@ -229,9 +224,10 @@ def countl(
                 line_count += 1
 
             print(f"Line count: {line_count}" if full_msg else line_count)
-    except FileNotFoundError:
-        if full_msg:
-            print(f"The file '{full_file_path}' does not exist.")
+    except FileNotFoundError as e:
+        raise typer.BadParameter(f"'{file_abs_path}' does not exist.") from e
+    except IsADirectoryError as e:
+        raise typer.BadParameter(f"'{file_abs_path}' is not a file.") from e
 
 
 @app.command()
@@ -252,16 +248,23 @@ def perc(
     """
 
     if whole is not None and part is not None:
+        if whole == 0:
+            raise typer.BadParameter("Result does not exist.")
         ratio = part/whole
         print(f"Ratio: {ratio}" if full_msg else ratio)
+
     elif whole is not None and ratio is not None:
         part = whole*ratio
         print(f"Part: {part}" if full_msg else part)
+
     elif part is not None and ratio is not None:
+        if ratio == 0:
+            raise typer.BadParameter("Result does not exist.")
         whole = part/ratio
         print(f"Whole: {whole}" if full_msg else whole)
+
     else:
-        raise typer.BadParameter("Two options must be passed.")
+        raise typer.BadParameter("Less than two parameters passed.")
 
 
 @app.command()
@@ -284,6 +287,8 @@ def rand(
 
     Generate a random number between 'lower' an 'upper'.
     """
+    if lower > upper:
+        raise typer.BadParameter("Invalid range.")
 
     for i in range(quantity):
         number = random.randint(lower, upper)
@@ -316,20 +321,34 @@ def stddz(
     Rename all files in a DIRECTORY to '{PREFIX}-{ID}', in which the ID is
     calculated incrementally.
     """
+    if start_idx < 0:
+        raise typer.BadParameter("Negative starting number.")
 
-    dir_abs_path = os.path.abspath(directory)
-    files = get_files(dir_abs_path)
+    try:
+        dir_abs_path = os.path.abspath(directory)
+        files = get_files(dir_abs_path)
 
-    last_id = start_idx + len(files) - 1
-    max_qt_digits = len(str(last_id))
-    qt_digits = max(qt_digits, max_qt_digits)
+        last_id = start_idx + len(files) - 1
+        min_qt_digits = len(str(last_id))
+        if min_qt_digits > qt_digits:
+            qt_digits = min_qt_digits
+            qt_reajusted = True
+        else:
+            qt_reajusted = False
 
-    # to prevent overriding previous files
-    temp_prefix = "".join(random.choices(string.ascii_letters, k=10))
-    rename(dir_abs_path, files, temp_prefix, qt_digits, start_idx)
+        # to prevent overriding previous files
+        temp_prefix = "".join(random.choices(string.ascii_letters, k=10))
+        rename(dir_abs_path, files, temp_prefix, qt_digits, start_idx)
 
-    files = get_files(dir_abs_path)
-    rename(dir_abs_path, files, prefix, qt_digits, start_idx)
+        files = get_files(dir_abs_path)
+        rename(dir_abs_path, files, prefix, qt_digits, start_idx)
+
+        if qt_reajusted:
+            print("Quantity of digits had to be reajusted.")
+    except FileNotFoundError as e:
+        raise typer.BadParameter(f"'{dir_abs_path}' does not exist.") from e
+    except NotADirectoryError as e:
+        raise typer.BadParameter(f"'{dir_abs_path}' is not a directory.") from e
 
 def get_files(directory_path: str) -> Tuple[str]:
     files = []
