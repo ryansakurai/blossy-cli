@@ -129,12 +129,12 @@ $ 1:26:02                                                                 $
 > The result is 1:26:02
 ```
 
-### 🔢 Count
+### 🔠 Count Characters
 
-To count the quantity of characters in a text file, use the `calc` command.
+To count the quantity of characters in a text file, use the `countc` command.
 
 ```bash
-$ blossy count file.txt 
+$ blossy countc file.txt 
 Character count: 58
 ```
 
@@ -149,7 +149,7 @@ Did somebody say meatloaf?
 You can use the `--ignore-unnec` flag to ignore unnecessary whitespaces. That way, a sequence of whitespaces will be counted as only one character, and trailing whitespaces will be completely ignored.
 
 ```bash
-$ blossy count file.txt --ignore-unnec
+$ blossy countc file.txt --ignore-unnec
 Character count: 55
 ```
 
@@ -160,12 +160,48 @@ Blossy is my favorite puppy. Did somebody say meatloaf?
 You can also use the `--ignore-ws` flag to ignore all whitespaces.
 
 ```bash
-$ blossy count file.txt --ignore-ws
+$ blossy countc file.txt --ignore-ws
 Character count: 47
 ```
 
 ```
 Blossyismyfavoritepuppy.Didsomebodysaymeatloaf?
+```
+
+### 📄 Count Lines
+
+To count the quantity of lines in a code source file, use the `calcl` command.
+
+```bash
+$ blossy countl one_piece.py
+Line count: 5
+```
+
+```python
+import random
+luffy_is_king_of_the_pirates = False
+while not luffy_is_king_of_the_pirates:
+    luffy_is_king_of_the_pirates = random.choice((True, False))
+print("One Piece ended. Two Piece incoming...")
+```
+
+You can use the `--no-ignore-blank` flag to count blank lines.
+
+```bash
+$ blossy countl one_piece.py --no-ignore-blank
+Line count: 8
+```
+
+```python
+import random
+
+luffy_is_king_of_the_pirates = False
+
+while not luffy_is_king_of_the_pirates:
+    luffy_is_king_of_the_pirates = random.choice((True, False))
+
+print("One Piece ended. Two Piece incoming...")
+
 ```
 
 ### 📊 Percentage

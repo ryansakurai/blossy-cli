@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blossy"
-version = "8.3"
+version = "8.4"
 description = "A lil' bud that helps you with stuff (it's a utility CLI)."
 readme = "README.md"
 license = {file = "LICENSE"}
