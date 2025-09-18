@@ -1,13 +1,20 @@
 """
 Module dedicated to functionalities of the 'calc' command
 """
-from typing import List, Optional, Tuple
+
+from collections.abc import Generator, Iterable
+from dataclasses import dataclass
+
 from sly import Lexer, Parser
 from sly.lex import Token
 from sly.yacc import YaccProduction
 
+# TODO: ditch sly, cause WTF
+
 
 class CalcLexer(Lexer):
+    """Lexer for simple mathematical expressions"""
+
     operators = {
         "PLUS": "+",
         "MINUS": "-",
@@ -35,10 +42,14 @@ class CalcLexer(Lexer):
     L_PARENTH = r"\("
     R_PARENTH = r"\)"
 
+
 class ParsingError(Exception):
-    pass
+    """Custom exception for parsing errors"""
+
 
 class CalcParser(Parser):
+    """Parser for simple mathematical expressions"""
+
     tokens = CalcLexer.tokens
 
     precedence = (
@@ -47,55 +58,56 @@ class CalcParser(Parser):
         ("right", "EXPONENT", "UNARY_PLUS", "UNARY_MINUS"),
     )
 
-    def error(self, token: Optional[Token]):
+    def error(self, token: Token | None) -> None:
         if token:
-            raise ParsingError(f"Operation absent or used incorrectly near index {token.index}")
+            raise ParsingError(
+                f"Operation absent or used incorrectly near index {token.index}"
+            )
         raise ParsingError("Operation absent or used incorrectly near the end of input")
 
+    @_("expression")
+    def start(self, prod: YaccProduction) -> int | float:
+        return self._normalize_num(prod.expression)
 
-    @_('expression')
-    def start(self, prod: YaccProduction) -> int|float:
-        return self.__normalize_num(prod.expression)
-
-    def __normalize_num(self, num: int|float) -> int|float:
+    def _normalize_num(self, num: int | float) -> int | float:
         if isinstance(num, int):
             return num
         return int(num) if num.is_integer() else round(num, 2)
 
     @_("expression PLUS expression")
-    def expression(self, prod: YaccProduction) -> int|float:
+    def expression(self, prod: YaccProduction) -> int | float:
         return prod.expression0 + prod.expression1
 
     @_("expression MINUS expression")
-    def expression(self, prod: YaccProduction) -> int|float:
+    def expression(self, prod: YaccProduction) -> int | float:
         return prod.expression0 - prod.expression1
 
     @_("expression TIMES expression")
-    def expression(self, prod: YaccProduction) -> int|float:
+    def expression(self, prod: YaccProduction) -> int | float:
         return prod.expression0 * prod.expression1
 
     @_("expression DIVIDE expression")
-    def expression(self, prod: YaccProduction) -> int|float:
+    def expression(self, prod: YaccProduction) -> int | float:
         return prod.expression0 / prod.expression1
 
     @_("expression EXPONENT expression")
-    def expression(self, prod: YaccProduction) -> int|float:
-        return prod.expression0 ** prod.expression1
+    def expression(self, prod: YaccProduction) -> int | float:
+        return prod.expression0**prod.expression1
 
     @_("PLUS expression %prec UNARY_PLUS")
-    def expression(self, prod: YaccProduction) -> int|float:
+    def expression(self, prod: YaccProduction) -> int | float:
         return prod.expression
 
     @_("MINUS expression %prec UNARY_MINUS")
-    def expression(self, prod: YaccProduction) -> int|float:
+    def expression(self, prod: YaccProduction) -> int | float:
         return 0 - prod.expression
 
     @_("L_PARENTH expression R_PARENTH")
-    def expression(self, prod: YaccProduction) -> int|float:
+    def expression(self, prod: YaccProduction) -> int | float:
         return prod.expression
 
     @_("number")
-    def expression(self, prod: YaccProduction) -> int|float:
+    def expression(self, prod: YaccProduction) -> int | float:
         return prod.number
 
     @_("INT_CONST")
@@ -106,7 +118,10 @@ class CalcParser(Parser):
     def number(self, prod: YaccProduction) -> float:
         return float(prod.FLOAT_CONST)
 
+
 class VisualCalcParser(Parser):
+    """Parser for visualizing simple mathematical expressions"""
+
     tokens = CalcLexer.tokens
 
     precedence = (
@@ -115,51 +130,52 @@ class VisualCalcParser(Parser):
         ("right", "EXPONENT", "UNARY_PLUS", "UNARY_MINUS"),
     )
 
-    def error(self, token: Optional[Token]):
+    def error(self, token: Token | None) -> None:
         if token:
-            raise ParsingError(f"Operation absent or used incorrectly near index {token.index}")
+            raise ParsingError(
+                f"Operation absent or used incorrectly near index {token.index}"
+            )
         raise ParsingError("Operation absent or used incorrectly near the end of input")
 
-
-    @_('expression')
-    def start(self, prod: YaccProduction) -> Tuple[str]:
+    @_("expression")
+    def start(self, prod: YaccProduction) -> tuple[str]:
         return prod.expression
 
     @_("expression PLUS expression")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
-        return prod.expression0 + prod.expression1 + ("+₂", )
+    def expression(self, prod: YaccProduction) -> tuple[str]:
+        return prod.expression0 + prod.expression1 + ("+₂",)
 
     @_("expression MINUS expression")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
-        return prod.expression0 + prod.expression1 + ("-₂", )
+    def expression(self, prod: YaccProduction) -> tuple[str]:
+        return prod.expression0 + prod.expression1 + ("-₂",)
 
     @_("expression TIMES expression")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
-        return prod.expression0 + prod.expression1 + ("*", )
+    def expression(self, prod: YaccProduction) -> tuple[str]:
+        return prod.expression0 + prod.expression1 + ("*",)
 
     @_("expression DIVIDE expression")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
-        return prod.expression0 + prod.expression1 + ("/", )
+    def expression(self, prod: YaccProduction) -> tuple[str]:
+        return prod.expression0 + prod.expression1 + ("/",)
 
     @_("expression EXPONENT expression")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
-        return prod.expression0 + prod.expression1 + ("^", )
+    def expression(self, prod: YaccProduction) -> tuple[str]:
+        return prod.expression0 + prod.expression1 + ("^",)
 
     @_("PLUS expression %prec UNARY_PLUS")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
-        return prod.expression + ("+₁", )
+    def expression(self, prod: YaccProduction) -> tuple[str]:
+        return prod.expression + ("+₁",)
 
     @_("MINUS expression %prec UNARY_MINUS")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
-        return prod.expression + ("-₁", )
+    def expression(self, prod: YaccProduction) -> tuple[str]:
+        return prod.expression + ("-₁",)
 
     @_("L_PARENTH expression R_PARENTH")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
+    def expression(self, prod: YaccProduction) -> tuple[str]:
         return prod.expression
 
     @_("number")
-    def expression(self, prod: YaccProduction) -> Tuple[str]:
-        return (prod.number, )
+    def expression(self, prod: YaccProduction) -> tuple[str]:
+        return (prod.number,)
 
     @_("INT_CONST")
     def number(self, prod: YaccProduction) -> int:
@@ -169,90 +185,106 @@ class VisualCalcParser(Parser):
     def number(self, prod: YaccProduction) -> float:
         return prod.FLOAT_CONST
 
-class CalcVisualizer:
-    UNARY_OPERATORS = ("+₁", "-₁")
-    BINARY_OPERATORS = ("+₂", "-₂", "*", "/", "^")
 
-    def __init__(self, values: Tuple[str]) -> None:
-        self.values_tuple = values
+@dataclass
+class CalcStep:
+    """Represents a single step in the calculation process."""
 
-    def visualize(self):
-        stack: List[str] = ["$"]
-        values = list(self.values_tuple) + ["$"]
-        yield None, " ".join(stack), " ".join(values)
+    operation: str | None
+    stack: str | None
+    input: str | None
 
-        while len(values) > 1:
-            value = values[0]
-            values.pop(0)
 
-            if value in self.UNARY_OPERATORS:
-                operand = stack.pop()
-                operator = value
-                result, operation = self.__handle_unary(operator, operand)
-                stack.append(result)
-            elif value in self.BINARY_OPERATORS:
-                operand2 = stack.pop()
-                operand1 = stack.pop()
-                operator = value
-                result, operation = self.__handle_binary(operator, operand1, operand2)
-                stack.append(result)
-            else:
-                number = value
-                stack.append(number)
-                operation = f"Stack {number}"
+def visualize_calc(postfixed_expr: tuple[str]) -> Generator[CalcStep, None, None]:
+    """Visualize the calculation steps."""
+    ops = {
+        "unary": ("+₁", "-₁"),
+        "binary": ("+₂", "-₂", "*", "/", "^"),
+    }
+    state = {
+        "stack": ["$"],
+        "input": list(postfixed_expr) + ["$"],
+    }
 
-            stack_str = " ".join(stack)
-            values_str = " ".join(values)
-            yield operation, stack_str, values_str
+    yield CalcStep(None, _iter_to_str(state["stack"]), _iter_to_str(state["input"]))
 
-        final_result = stack.pop()
-        final_result = self.___to_num(final_result)
-        final_result = round(final_result, 2)
-        yield f"The result is {final_result}", None, None
+    while len(state["input"]) > 1:
+        value = state["input"].pop(0)
 
-    def ___to_num(self, num: str) -> int|float:
-        return float(num) if "." in num else int(num)
+        if value in ops["unary"]:
+            operand = state["stack"].pop()
+            operator = value
+            result, operation = _handle_unary(operator, operand)
+            state["stack"].append(result)
+        elif value in ops["binary"]:
+            operand_2 = state["stack"].pop()
+            operand_1 = state["stack"].pop()
+            operator = value
+            result, operation = _handle_binary(operator, operand_1, operand_2)
+            state["stack"].append(result)
+        else:
+            state["stack"].append(value)
+            operation = f"Stack {value}"
 
-    def __handle_unary(self,
-                       operator: str,
-                       operand: str) -> Tuple[str, str]:
-        match operator:
-            case "+₁":
-                result = self.___to_num(operand)
-                operation = f"+{operand} = {result}"
-            case "-₁":
-                result = 0 - self.___to_num(operand)
-                operation = f"-{operand} = {result}"
+        stack_str = _iter_to_str(state["stack"])
+        input_str = _iter_to_str(state["input"])
+        yield CalcStep(operation, stack_str, input_str)
 
-        return str(result), operation
+    final_result = state["stack"].pop()
+    final_result = _to_num(final_result)
+    final_result = round(final_result, 2)
+    yield CalcStep(f"The result is {final_result}", None, None)
 
-    def __handle_binary(self,
-                       operator: str,
-                       operand1: int|float,
-                       operand2: int|float) -> Tuple[int|float, str]:
-        match operator:
-            case "+₂":
-                result = self.___to_num(operand1) + self.___to_num(operand2)
-                operation = f"{operand1} + {operand2} = {result}"
-            case "-₂":
-                result = self.___to_num(operand1) - self.___to_num(operand2)
-                operation = f"{operand1} - {operand2} = {result}"
-            case "*":
-                result = self.___to_num(operand1) * self.___to_num(operand2)
-                result = self.__trim_num(result)
-                operation = f"{operand1} * {operand2} = {result}"
-            case "/":
-                result = self.___to_num(operand1) / self.___to_num(operand2)
-                result = self.__trim_num(result)
-                operation = f"{operand1} / {operand2} = {result}"
-            case "^":
-                result = self.___to_num(operand1) ** self.___to_num(operand2)
-                result = self.__trim_num(result)
-                operation = f"{operand1}^{operand2} = {result}"
 
-        return str(result), operation
+def _iter_to_str(iterable: Iterable[str]) -> str:
+    return " ".join(iterable)
 
-    def __trim_num(self, num: int|float) -> int|float:
-        if isinstance(num, int):
-            return num
-        return int(num) if num.is_integer() else num
+
+def _to_num(num: str) -> int | float:
+    return float(num) if "." in num else int(num)
+
+
+def _handle_unary(operator: str, operand: str) -> tuple[str, str]:
+    match operator:
+        case "+₁":
+            result = _to_num(operand)
+            operation = f"+{operand} = {result}"
+        case "-₁":
+            result = 0 - _to_num(operand)
+            operation = f"-{operand} = {result}"
+        case _:
+            raise ValueError(f"unknown operator '{operator}'")
+
+    return str(result), operation
+
+
+def _handle_binary(operator: str, operand_1: str, operand_2: str) -> tuple[str, str]:
+    match operator:
+        case "+₂":
+            result = _to_num(operand_1) + _to_num(operand_2)
+            operation = f"{operand_1} + {operand_2} = {result}"
+        case "-₂":
+            result = _to_num(operand_1) - _to_num(operand_2)
+            operation = f"{operand_1} - {operand_2} = {result}"
+        case "*":
+            result = _to_num(operand_1) * _to_num(operand_2)
+            result = _trim_num(result)
+            operation = f"{operand_1} * {operand_2} = {result}"
+        case "/":
+            result = _to_num(operand_1) / _to_num(operand_2)
+            result = _trim_num(result)
+            operation = f"{operand_1} / {operand_2} = {result}"
+        case "^":
+            result = _to_num(operand_1) ** _to_num(operand_2)
+            result = _trim_num(result)
+            operation = f"{operand_1}^{operand_2} = {result}"
+        case _:
+            raise ValueError(f"unknown operator '{operator}'")
+
+    return str(result), operation
+
+
+def _trim_num(num: int | float) -> int | float:
+    if isinstance(num, int):
+        return num
+    return int(num) if num.is_integer() else num
