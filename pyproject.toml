@@ -1,36 +1,35 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "blossy"
-version = "8.5"
+name = "blossy-cli"
+version = "6.0.0"
 description = "A lil' bud that helps you with stuff (it's a utility CLI)."
-readme = "README.md"
-license = {file = "LICENSE"}
 authors = [
-    { name = "Ryan Sakurai", email = "ryansakurai03@gmail.com" }
+    {name = "Ryan Sakurai",email = "ryansakurai03@gmail.com"}
 ]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent"
-]
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
 dependencies = [
-    "click==8.1.7",
-    "colorama==0.4.6",
-    "markdown-it-py==3.0.0",
-    "mdurl==0.1.2",
-    "Pygments==2.17.2",
-    "rich==13.7.1",
-    "shellingham==1.5.4",
-    "sly==0.5",
-    "typer==0.9.0",
-    "typing_extensions==4.10.0"
+    "typer (>=0.17.4,<0.18.0)",
+    "sly (>=0.5,<0.6)"
 ]
 
 [project.urls]
 repository = "https://github.com/ryansakurai/blossy-cli"
 
 [project.scripts]
-blossy = "blossy.blossy:app"
+blossy = "blossy_cli.main:app"
+
+[tool.poetry]
+packages = [{include = "blossy_cli", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "black (>=25.1.0,<26.0.0)",
+    "pylint (>=3.3.8,<4.0.0)",
+    "isort (>=6.0.1,<7.0.0)"
+]

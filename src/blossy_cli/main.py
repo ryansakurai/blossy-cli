@@ -8,8 +8,8 @@ import string
 from typing import List, Tuple
 import typer
 from typing_extensions import Annotated
-from .calc import CalcLexer, CalcParser, VisualCalcParser, CalcVisualizer
-from .calct import CalcTimeLexer, CalcTimeParser, VisualCalcTimeParser, CalcTimeVisualizer
+from blossy_cli.command.calc import CalcLexer, CalcParser, VisualCalcParser, CalcVisualizer
+from blossy_cli.command.calct import CalcTimeLexer, CalcTimeParser, VisualCalcTimeParser, CalcTimeVisualizer
 
 app = typer.Typer(name="blossy", help="A lil' bud that helps you with stuff (it's a utility CLI).")
 

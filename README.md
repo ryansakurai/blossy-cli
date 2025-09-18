@@ -1,4 +1,4 @@
-<h1 align="center">  🌸  Blossy CLI  🌸  </h1>
+# 🌸 Blossy CLI 🌸
 
 A multiuse utility CLI tool developed using:
 
