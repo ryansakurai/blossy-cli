@@ -8,8 +8,7 @@ import string
 from typing import List, Tuple
 import typer
 from typing_extensions import Annotated
-from blossy_cli.command.calc import CalcLexer, CalcParser, VisualCalcParser, CalcVisualizer
-from blossy_cli.command.calct import CalcTimeLexer, CalcTimeParser, VisualCalcTimeParser, CalcTimeVisualizer
+from .command import calc as calc_mod, calct as calct_mod
 
 app = typer.Typer(name="blossy", help="A lil' bud that helps you with stuff (it's a utility CLI).")
 
@@ -45,23 +44,22 @@ def calc(
     """
     try:
         if visualize:
-            lexer = CalcLexer()
-            parser = VisualCalcParser()
-            postfixed_expr = parser.parse(lexer.tokenize(expression))
-            visualizer = CalcVisualizer(postfixed_expr)
+            lexer = calc_mod.ExpressionLexer()
+            parser = calc_mod.PostfixedExpressionParser()
+            postfixed_expr: tuple[str] = parser.parse(lexer.tokenize(expression))
 
-            for operation, stack_state, input_state in visualizer.visualize():
-                if operation:
-                    print(f"> {operation}")
-                if stack_state and input_state:
+            for step in calc_mod.visualize_calc(postfixed_expr):
+                if step.operation:
+                    print(f"> {step.operation}")
+                if step.stack and step.input:
                     print()
-                    print_with_padding(stack_state, input_state)
+                    print_with_padding(step.stack, step.input)
                 input()
             return
 
-        lexer = CalcLexer()
-        parser = CalcParser()
-        result = parser.parse(lexer.tokenize(expression))
+        lexer = calc_mod.ExpressionLexer()
+        parser = calc_mod.ExpressionParser()
+        result: int | float = parser.parse(lexer.tokenize(expression))
         print(result)
     except Exception as e:
         raise typer.BadParameter(str(e)) from e
@@ -106,23 +104,22 @@ def calct(
     """
     try:
         if visualize:
-            lexer = CalcTimeLexer()
-            parser = VisualCalcTimeParser()
-            postfixed_expr = parser.parse(lexer.tokenize(expression))
-            visualizer = CalcTimeVisualizer(postfixed_expr)
+            lexer = calct_mod.ExpressionLexer()
+            parser = calct_mod.PostfixedExpressionParser()
+            postfixed_expr: tuple[str] = parser.parse(lexer.tokenize(expression))
 
-            for operation, stack_state, input_state in visualizer.visualize():
-                if operation:
-                    print(f"> {operation}")
-                if stack_state and input_state:
+            for step in calct_mod.visualize_calc(postfixed_expr):
+                if step.operation:
+                    print(f"> {step.operation}")
+                if step.stack and step.input:
                     print()
-                    print_with_padding(stack_state, input_state)
+                    print_with_padding(step.stack, step.input)
                 input()
             return
 
-        lexer = CalcTimeLexer()
-        parser = CalcTimeParser()
-        result = parser.parse(lexer.tokenize(expression))
+        lexer = calct_mod.ExpressionLexer()
+        parser = calct_mod.ExpressionParser()
+        result: calct_mod.Time = parser.parse(lexer.tokenize(expression))
         print(result)
     except Exception as e:
         raise typer.BadParameter(str(e)) from e

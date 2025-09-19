@@ -12,7 +12,7 @@ from sly.yacc import YaccProduction
 # TODO: ditch sly, cause WTF
 
 
-class CalcLexer(Lexer):
+class ExpressionLexer(Lexer):
     """Lexer for simple mathematical expressions"""
 
     operators = {
@@ -47,10 +47,10 @@ class ParsingError(Exception):
     """Custom exception for parsing errors"""
 
 
-class CalcParser(Parser):
+class ExpressionParser(Parser):
     """Parser for simple mathematical expressions"""
 
-    tokens = CalcLexer.tokens
+    tokens = ExpressionLexer.tokens
 
     precedence = (
         ("left", "PLUS", "MINUS"),
@@ -119,10 +119,10 @@ class CalcParser(Parser):
         return float(prod.FLOAT_CONST)
 
 
-class VisualCalcParser(Parser):
-    """Parser for visualizing simple mathematical expressions"""
+class PostfixedExpressionParser(Parser):
+    """Parser for converting expressions to postfixed notation."""
 
-    tokens = CalcLexer.tokens
+    tokens = ExpressionLexer.tokens
 
     precedence = (
         ("left", "PLUS", "MINUS"),
@@ -187,7 +187,7 @@ class VisualCalcParser(Parser):
 
 
 @dataclass
-class CalcStep:
+class VisualCalcStep:
     """Represents a single step in the calculation process."""
 
     operation: str | None
@@ -195,7 +195,7 @@ class CalcStep:
     input: str | None
 
 
-def visualize_calc(postfixed_expr: tuple[str]) -> Generator[CalcStep, None, None]:
+def visualize_calc(postfixed_expr: tuple[str]) -> Generator[VisualCalcStep, None, None]:
     """Visualize the calculation steps."""
     ops = {
         "unary": ("+₁", "-₁"),
@@ -206,7 +206,9 @@ def visualize_calc(postfixed_expr: tuple[str]) -> Generator[CalcStep, None, None
         "input": list(postfixed_expr) + ["$"],
     }
 
-    yield CalcStep(None, _iter_to_str(state["stack"]), _iter_to_str(state["input"]))
+    yield VisualCalcStep(
+        None, _iter_to_str(state["stack"]), _iter_to_str(state["input"])
+    )
 
     while len(state["input"]) > 1:
         value = state["input"].pop(0)
@@ -228,12 +230,12 @@ def visualize_calc(postfixed_expr: tuple[str]) -> Generator[CalcStep, None, None
 
         stack_str = _iter_to_str(state["stack"])
         input_str = _iter_to_str(state["input"])
-        yield CalcStep(operation, stack_str, input_str)
+        yield VisualCalcStep(operation, stack_str, input_str)
 
     final_result = state["stack"].pop()
     final_result = _to_num(final_result)
     final_result = round(final_result, 2)
-    yield CalcStep(f"The result is {final_result}", None, None)
+    yield VisualCalcStep(f"The result is {final_result}", None, None)
 
 
 def _iter_to_str(iterable: Iterable[str]) -> str:
