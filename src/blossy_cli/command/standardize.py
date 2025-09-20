@@ -3,6 +3,7 @@
 import os
 import random
 import string
+from collections.abc import Iterable
 
 import typer
 from typing_extensions import Annotated
@@ -37,8 +38,9 @@ def main(
     if start_idx < 0:
         raise typer.BadParameter("Negative starting number.")
 
+    dir_abs_path = os.path.abspath(directory)
+
     try:
-        dir_abs_path = os.path.abspath(directory)
         files = _get_files(dir_abs_path)
 
         last_id = start_idx + len(files) - 1
@@ -74,7 +76,7 @@ def _get_files(directory_path: str) -> tuple[str]:
 
 
 def _rename(
-    dir_path: str, files: list[str], prefix: str, qt_digits: int, start_idx: int
+    dir_path: str, files: Iterable[str], prefix: str, qt_digits: int, start_idx: int
 ) -> None:
     idx = start_idx
     for filename in files:
