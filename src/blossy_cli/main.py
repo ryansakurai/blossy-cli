@@ -2,27 +2,35 @@
 A lil' bud that helps you with stuff (it's a utility CLI).
 """
 
-import random
 import os
+import random
 import string
-from typing import List, Tuple
+
 import typer
 from typing_extensions import Annotated
-from .command import calc as calc_mod, calct as calct_mod
 
-app = typer.Typer(name="blossy", help="A lil' bud that helps you with stuff (it's a utility CLI).")
+from .calculate.service import (
+    ExpressionLexer,
+    ExpressionParser,
+    PostfixedExpressionParser,
+    visualize_calc,
+)
+
+app = typer.Typer(
+    name="blossy", help="A lil' bud that helps you with stuff (it's a utility CLI)."
+)
 
 
 @app.command()
 def calc(
     expression: Annotated[
-        str,
-        typer.Argument(show_default=False, help="Expression to be calculated."),
+        str, typer.Argument(show_default=False, help="Expression to be calculated.")
     ],
     visualize: Annotated[
         bool,
         typer.Option(
-            "--visualize", "-v",
+            "--visualize",
+            "-v",
             help="Show a visualization using postfix notation and a stack.",
         ),
     ] = False,
@@ -30,41 +38,57 @@ def calc(
     """
     CALCULATE
 
-    Calculate the value of a mathematical expression.
+    Calculate the value of a mathematical expression involving numbers and time.
 
-    Available syntax:\n
-    • (expr)\n
-    • + expr\n
-    • - expr\n
-    • expr ^ expr\n
-    • expr * expr\n
-    • expr / expr\n
-    • expr + expr\n
-    • expr - expr
+    Number syntax:\n
+    • Integers: 123\n
+    • Decimals: 12.34\n
+
+    Time syntax:\n
+    • 43:21 (43 minutes, 21 seconds)\n
+    • 65:43:21 (65 hours, 43 minutes, 21 seconds)\n
+
+    Available operations:\n
+    • (expr) - Grouping\n
+    • +expr - Unary plus\n
+    • -expr - Unary minus\n
+    • expr ^ expr - Exponentiation\n
+    • expr * expr - Multiplication\n
+    • expr / expr - Division\n
+    • expr + expr - Addition\n
+    • expr - expr - Subtraction\n
+
+    Operation rules for time:\n
+    • Time + Time = Time\n
+    • Time - Time = Time\n
+    • Time * Number = Time\n
+    • Number * Time = Time\n
+    • Time / Number = Time\n
     """
     try:
         if visualize:
-            lexer = calc_mod.ExpressionLexer()
-            parser = calc_mod.PostfixedExpressionParser()
+            lexer = ExpressionLexer()
+            parser = PostfixedExpressionParser()
             postfixed_expr: tuple[str] = parser.parse(lexer.tokenize(expression))
 
-            for step in calc_mod.visualize_calc(postfixed_expr):
+            for step in visualize_calc(postfixed_expr):
                 if step.operation:
                     print(f"> {step.operation}")
                 if step.stack and step.input:
                     print()
-                    print_with_padding(step.stack, step.input)
+                    _print_with_padding(step.stack, step.input)
                 input()
             return
 
-        lexer = calc_mod.ExpressionLexer()
-        parser = calc_mod.ExpressionParser()
+        lexer = ExpressionLexer()
+        parser = ExpressionParser()
         result: int | float = parser.parse(lexer.tokenize(expression))
         print(result)
     except Exception as e:
         raise typer.BadParameter(str(e)) from e
 
-def print_with_padding(left_side: str, right_side: str) -> None:
+
+def _print_with_padding(left_side: str, right_side: str) -> None:
     terminal_width = os.get_terminal_size().columns
     padding = terminal_width - len(left_side) - len(right_side)
     if padding > 0:
@@ -74,75 +98,20 @@ def print_with_padding(left_side: str, right_side: str) -> None:
 
 
 @app.command()
-def calct(
-    expression: Annotated[
-        str,
-        typer.Argument(show_default=False, help="Expression to be calculated."),
-    ],
-    visualize: Annotated[
-        bool,
-        typer.Option(
-            "--visualize", "-v",
-            help="Show a visualization using postfix notation and a stack.",
-        ),
-    ] = False,
-):
-    """
-    CALCULATE TIME
-
-    Calculate the value of a mathematical expression using time.
-
-    Available syntax:\n
-    • (expr)\n
-    • + expr\n
-    • - expr\n
-    • expr ^ expr\n
-    • expr * expr\n
-    • expr / expr\n
-    • expr + expr\n
-    • expr - expr
-    """
-    try:
-        if visualize:
-            lexer = calct_mod.ExpressionLexer()
-            parser = calct_mod.PostfixedExpressionParser()
-            postfixed_expr: tuple[str] = parser.parse(lexer.tokenize(expression))
-
-            for step in calct_mod.visualize_calc(postfixed_expr):
-                if step.operation:
-                    print(f"> {step.operation}")
-                if step.stack and step.input:
-                    print()
-                    print_with_padding(step.stack, step.input)
-                input()
-            return
-
-        lexer = calct_mod.ExpressionLexer()
-        parser = calct_mod.ExpressionParser()
-        result: calct_mod.Time = parser.parse(lexer.tokenize(expression))
-        print(result)
-    except Exception as e:
-        raise typer.BadParameter(str(e)) from e
-
-
-@app.command()
 def countc(
     file: Annotated[
-        str,
-        typer.Argument(show_default=False, help="Relative path to the file."),
+        str, typer.Argument(show_default=False, help="Relative path to the file.")
     ],
     ignore_unnec: Annotated[
         bool,
-        typer.Option("--ignore-unnec", help="Ignore unnecessary (repeated) whitespace."),
+        typer.Option(
+            "--ignore-unnec", help="Ignore unnecessary (repeated) whitespace."
+        ),
     ] = False,
     ignore_ws: Annotated[
-        bool,
-        typer.Option("--ignore-ws", help="Ignore all whitespace."),
+        bool, typer.Option("--ignore-ws", help="Ignore all whitespace.")
     ] = False,
-    full_msg: Annotated[
-        bool,
-        typer.Option(help="Show full message.")
-    ] = True,
+    full_msg: Annotated[bool, typer.Option(help="Show full message.")] = True,
 ):
     """
     COUNT CHARACTERS
@@ -154,12 +123,12 @@ def countc(
     file_abs_path = os.path.join(current_dir, file)
 
     try:
-        with open(file_abs_path, "r", encoding="utf-8") as file:
+        with open(file_abs_path, "r", encoding="utf-8") as f:
             char_count = 0
             first_char = ""
             prev_char = ""
             while True:
-                char = file.read(1)
+                char = f.read(1)
                 if not char:
                     break
 
@@ -191,17 +160,10 @@ def countc(
 @app.command()
 def countl(
     file: Annotated[
-        str,
-        typer.Argument(show_default=False, help="Relative path to the file."),
+        str, typer.Argument(show_default=False, help="Relative path to the file.")
     ],
-    ignore_blank: Annotated[
-        bool,
-        typer.Option(help="Ignore all blank lines."),
-    ] = True,
-    full_msg: Annotated[
-        bool,
-        typer.Option(help="Show full message.")
-    ] = True,
+    ignore_blank: Annotated[bool, typer.Option(help="Ignore all blank lines.")] = True,
+    full_msg: Annotated[bool, typer.Option(help="Show full message.")] = True,
 ):
     """
     COUNT LINES
@@ -213,9 +175,9 @@ def countl(
     file_abs_path = os.path.join(current_dir, file)
 
     try:
-        with open(file_abs_path, "r", encoding="utf-8") as file:
+        with open(file_abs_path, "r", encoding="utf-8") as f:
             line_count = 0
-            for line in file:
+            for line in f:
                 if ignore_blank and (line.isspace() or len(line) == 0):
                     continue
                 line_count += 1
@@ -229,9 +191,15 @@ def countl(
 
 @app.command()
 def perc(
-    whole: Annotated[float, typer.Option("--whole", "-w", show_default=False)] = None,
-    part: Annotated[float, typer.Option("--part", "-p", show_default=False)] = None,
-    ratio: Annotated[float, typer.Option("--ratio", "-r", show_default=False)] = None,
+    whole: Annotated[
+        float | None, typer.Option("--whole", "-w", show_default=False)
+    ] = None,
+    part: Annotated[
+        float | None, typer.Option("--part", "-p", show_default=False)
+    ] = None,
+    ratio: Annotated[
+        float | None, typer.Option("--ratio", "-r", show_default=False)
+    ] = None,
     full_msg: Annotated[bool, typer.Option(help="Show full message.")] = True,
 ):
     """
@@ -247,17 +215,17 @@ def perc(
     if whole is not None and part is not None:
         if whole == 0:
             raise typer.BadParameter("Result does not exist.")
-        ratio = part/whole
+        ratio = part / whole
         print(f"Ratio: {ratio}" if full_msg else ratio)
 
     elif whole is not None and ratio is not None:
-        part = whole*ratio
+        part = whole * ratio
         print(f"Part: {part}" if full_msg else part)
 
     elif part is not None and ratio is not None:
         if ratio == 0:
             raise typer.BadParameter("Result does not exist.")
-        whole = part/ratio
+        whole = part / ratio
         print(f"Whole: {whole}" if full_msg else whole)
 
     else:
@@ -276,7 +244,9 @@ def rand(
     ],
     quantity: Annotated[
         int,
-        typer.Option("--quantity", "-q", help="Quantity of random numbers to generate."),
+        typer.Option(
+            "--quantity", "-q", help="Quantity of random numbers to generate."
+        ),
     ] = 1,
 ):
     """
@@ -289,7 +259,7 @@ def rand(
 
     for i in range(quantity):
         number = random.randint(lower, upper)
-        end_char = " " if i < (quantity-1) else "\n"
+        end_char = " " if i < (quantity - 1) else "\n"
         print(number, end=end_char)
 
 
@@ -309,7 +279,9 @@ def stddz(
     ] = 0,
     qt_digits: Annotated[
         int,
-        typer.Option("--digits", "-d", help="Quantity of digits used to represent the ID.")
+        typer.Option(
+            "--digits", "-d", help="Quantity of digits used to represent the ID."
+        ),
     ] = 3,
 ):
     """
@@ -323,7 +295,7 @@ def stddz(
 
     try:
         dir_abs_path = os.path.abspath(directory)
-        files = get_files(dir_abs_path)
+        files = _get_files(dir_abs_path)
 
         last_id = start_idx + len(files) - 1
         min_qt_digits = len(str(last_id))
@@ -335,10 +307,10 @@ def stddz(
 
         # to prevent overriding previous files
         temp_prefix = "".join(random.choices(string.ascii_letters, k=10))
-        rename(dir_abs_path, files, temp_prefix, qt_digits, start_idx)
+        _rename(dir_abs_path, files, temp_prefix, qt_digits, start_idx)
 
-        files = get_files(dir_abs_path)
-        rename(dir_abs_path, files, prefix, qt_digits, start_idx)
+        files = _get_files(dir_abs_path)
+        _rename(dir_abs_path, files, prefix, qt_digits, start_idx)
 
         if qt_reajusted:
             print("Quantity of digits had to be reajusted.")
@@ -347,7 +319,8 @@ def stddz(
     except NotADirectoryError as e:
         raise typer.BadParameter(f"'{dir_abs_path}' is not a directory.") from e
 
-def get_files(directory_path: str) -> Tuple[str]:
+
+def _get_files(directory_path: str) -> tuple[str]:
     files = []
     for item in os.listdir(directory_path):
         file_abs_path = os.path.join(directory_path, item)
@@ -355,20 +328,20 @@ def get_files(directory_path: str) -> Tuple[str]:
             files.append(item)
     return tuple(files)
 
-def rename(dir_path: str,
-           files: List[str],
-           prefix: str,
-           qt_digits: int,
-           start_idx: int) -> None:
+
+def _rename(
+    dir_path: str, files: list[str], prefix: str, qt_digits: int, start_idx: int
+) -> None:
     idx = start_idx
     for filename in files:
         _, ext = os.path.splitext(filename)
-        new_file = build_file_name(prefix, idx, qt_digits) + ext
+        new_file = _build_file_name(prefix, idx, qt_digits) + ext
         os.rename(os.path.join(dir_path, filename), os.path.join(dir_path, new_file))
 
         idx += 1
 
-def build_file_name(prefix: str, index: int, qt_digits: int) -> str:
+
+def _build_file_name(prefix: str, index: int, qt_digits: int) -> str:
     num_str = f"{index:0{qt_digits}}"
     return f"{prefix}-{num_str}"
 
