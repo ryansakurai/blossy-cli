@@ -1,4 +1,4 @@
-# 🌸 Blossy CLI
+# 🌸 Blossy CLI 🌸
 
 A multiuse utility CLI tool developed using:
 
