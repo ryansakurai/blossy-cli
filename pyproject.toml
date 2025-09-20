@@ -20,16 +20,12 @@ repository = "https://github.com/ryansakurai/blossy-cli"
 [project.scripts]
 blossy = "blossy_cli.main:app"
 
+[project.optional-dependencies]
+dev = ["black (>=25.9.0,<26.0.0)", "pylint (>=3.3.8,<4.0.0)", "isort (>=6.0.1,<7.0.0)"]
+
 [tool.poetry]
 packages = [{include = "blossy_cli", from = "src"}]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[dependency-groups]
-dev = [
-    "black (>=25.1.0,<26.0.0)",
-    "pylint (>=3.3.8,<4.0.0)",
-    "isort (>=6.0.1,<7.0.0)"
-]
