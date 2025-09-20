@@ -1,4 +1,4 @@
-# 🌸 Blossy CLI 🌸
+# 🌸 Blossy CLI
 
 A multiuse utility CLI tool developed using:
 
@@ -6,16 +6,15 @@ A multiuse utility CLI tool developed using:
 - Typer: building the CLI;
 - Sly Lex Yacc: parsing text.
 
-## 🛠 Features
+## Features
 
-- [x] Calculate the value of an expression
-- [x] Calculate the value of an expression using time
+- [x] Calculate the value of mathematical expressions (numbers and time)
 - [x] Count the quantity of characters in a text file
 - [x] Solve percentage equations
 - [x] Generate random numbers
 - [x] Stardardize the names of the files in a directory
 
-## 🏁 How to Install
+## How to Install
 
 To install the CLI, you'll only need to have Python installed on your machine. Then, run the following command:
 
@@ -23,11 +22,11 @@ To install the CLI, you'll only need to have Python installed on your machine. T
 $ python3 -m pip install blossy
 ```
 
-## ⚙️ Behavior
+## Behavior
 
-### 🧮 Calculate
+### Calculate
 
-To calculate the value of an expression, use the `calc` command. The following operators are supported:
+To calculate the value of a mathematical expression, use the `calc` command. It supports both numbers and time expressions. The following operators are supported:
 
 - (expr)
 - \+ expr
@@ -38,12 +37,23 @@ To calculate the value of an expression, use the `calc` command. The following o
 - expr + expr
 - expr - expr
 
+**Number calculations:**
+
 ```bash
 $ blossy calc "2*3+4^6"
 4102
 ```
 
+**Time calculations:**
+
+```bash
+$ blossy calc "1:02:00 + 12:01*2"
+1:26:02
+```
+
 You can use the `--visualize` flag to see the steps of the calculation, illustrated using postfix notation and a stack.
+
+**Example with numbers:**
 
 ```bash
 $ blossy calc "2*3+4^6" --visualize
@@ -81,28 +91,10 @@ $ 4102                                                                    $
 > The result is 4102
 ```
 
-### ⌚ Calculate Time
-
-To calculate the value of an expression using time, use the `calct` command. The following operators are supported:
-
-- (expr)
-- \+ expr
-- \- expr
-- expr ^ expr
-- expr * expr
-- expr / expr
-- expr + expr
-- expr - expr
+**Example with time:**
 
 ```bash
-$ blossy calct "1:02:00 + 12:01*2"
-1:26:02
-```
-
-You can use the `--visualize` flag to see the steps of the calculation, illustrated using postfix notation and a stack.
-
-```bash
-$ blossy calct "1:02:00 + 12:01*2" --visualize
+$ blossy calc "1:02:00 + 12:01*2" --visualize
 
 $                                                    1:02:00 12:01 2 * +₂ $
 
@@ -129,7 +121,7 @@ $ 1:26:02                                                                 $
 > The result is 1:26:02
 ```
 
-### 🔠 Count Characters
+### Count Characters
 
 To count the quantity of characters in a text file, use the `countc` command.
 
@@ -204,7 +196,7 @@ Did somebody say meatloaf?
 Blossyismyfavoritepuppy.Didsomebodysaymeatloaf?
 ```
 
-### 📄 Count Lines
+### Count Lines
 
 To count the quantity of lines in a code source file, use the `calcl` command.
 
@@ -272,7 +264,7 @@ print("One Piece ended. Two Piece incoming...")
 
 ```
 
-### 📊 Percentage
+### Percentage
 
 To solve percentage equations, use the `perc` command. This command uses the formula `ratio = part/whole`.
 
@@ -283,7 +275,7 @@ $ blossy perc --whole 100 --part 25
 Ratio: 0.25
 ```
 
-### 🎲 Random
+### Random
 
 To generate a random number between two given values (inclusive), use the `rand` command.
 
@@ -299,7 +291,7 @@ $ blossy rand 1 10 --quantity 5
 2 7 1 5 1
 ```
 
-### 🗂️ Standardize
+### Standardize
 
 To rename the files in a directory, using the format `{prefix}-{id}`, use the `stddz` command. Here's an example of how to use the command:
 
