@@ -7,7 +7,7 @@ from .command import (
     count_chars,
     count_lines,
     percentage,
-    random,
+    random_cmd,
     standardize,
 )
 
@@ -19,5 +19,5 @@ app.add_typer(calculate.app, name="calc")
 app.add_typer(count_chars.app, name="countc")
 app.add_typer(count_lines.app, name="countl")
 app.add_typer(percentage.app, name="perc")
-app.add_typer(random.app, name="rand")
+app.add_typer(random_cmd.app, name="rand")
 app.add_typer(standardize.app, name="stddz")
