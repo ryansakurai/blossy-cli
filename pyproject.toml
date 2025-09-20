@@ -1,5 +1,5 @@
 [project]
-name = "blossy-cli"
+name = "blossy"
 version = "7.0.2"
 description = "A lil' bud that helps you with stuff (it's a utility CLI)."
 authors = [
@@ -18,13 +18,13 @@ dependencies = [
 repository = "https://github.com/ryansakurai/blossy-cli"
 
 [project.scripts]
-blossy = "blossy_cli.main:app"
+blossy = "blossy.main:app"
 
 [project.optional-dependencies]
 dev = ["black (>=25.9.0,<26.0.0)", "pylint (>=3.3.8,<4.0.0)", "isort (>=6.0.1,<7.0.0)"]
 
 [tool.poetry]
-packages = [{include = "blossy_cli", from = "src"}]
+packages = [{include = "blossy", from = "src"}]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
