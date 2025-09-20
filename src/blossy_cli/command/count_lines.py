@@ -9,7 +9,7 @@ app = typer.Typer()
 
 
 @app.command()
-def countl(
+def main(
     file: Annotated[
         str, typer.Argument(show_default=False, help="Relative path to the file.")
     ],

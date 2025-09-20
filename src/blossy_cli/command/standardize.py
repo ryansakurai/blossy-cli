@@ -11,7 +11,7 @@ app = typer.Typer()
 
 
 @app.command()
-def stddz(
+def main(
     prefix: Annotated[
         str, typer.Argument(show_default=False, help="Prefix of the files.")
     ],

@@ -9,7 +9,7 @@ app = typer.Typer()
 
 
 @app.command()
-def rand(
+def main(
     lower: Annotated[
         int,
         typer.Argument(show_default=False, help="Lower limit (inclusive)."),

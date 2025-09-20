@@ -7,7 +7,7 @@ app = typer.Typer()
 
 
 @app.command()
-def perc(
+def main(
     whole: Annotated[
         float | None, typer.Option("--whole", "-w", show_default=False)
     ] = None,
