@@ -1,15 +1,191 @@
-"""Domain services for the 'calculate' command."""
+"""'calc' command of the Blossy CLI."""
 
-from collections.abc import Generator, Iterable
+from collections.abc import Generator
+from dataclasses import dataclass
 
+import typer
 from sly import Lexer, Parser
 from sly.lex import Token
 from sly.yacc import YaccProduction
-
-from .error import ParsingError
-from .model import ExpressionResult, Time, VisualCalcStep
+from typing_extensions import Annotated
 
 # TODO: ditch sly, cause WTF
+
+app = typer.Typer()
+
+
+@app.command()
+def main(
+    expression: Annotated[
+        str, typer.Argument(show_default=False, help="Expression to be calculated.")
+    ],
+    visualize: Annotated[
+        bool,
+        typer.Option(
+            "--visualize",
+            "-v",
+            help="Show a visualization using postfix notation and a stack.",
+        ),
+    ] = False,
+):
+    """
+    CALCULATE
+
+    Calculate the value of a mathematical expression involving numbers and time.
+
+    Number syntax:\n
+    • Integers: 123\n
+    • Decimals: 12.34\n
+
+    Time syntax:\n
+    • 43:21 (43 minutes, 21 seconds)\n
+    • 65:43:21 (65 hours, 43 minutes, 21 seconds)\n
+
+    Available operations:\n
+    • (expr) - Grouping\n
+    • +expr - Unary plus\n
+    • -expr - Unary minus\n
+    • expr ^ expr - Exponentiation\n
+    • expr * expr - Multiplication\n
+    • expr / expr - Division\n
+    • expr + expr - Addition\n
+    • expr - expr - Subtraction\n
+
+    Operation rules for time:\n
+    • Time + Time = Time\n
+    • Time - Time = Time\n
+    • Time * Number = Time\n
+    • Number * Time = Time\n
+    • Time / Number = Time\n
+    """
+    try:
+        if visualize:
+            lexer = ExpressionLexer()
+            parser = PostfixedExpressionParser()
+            postfixed_expr: tuple[str] = parser.parse(lexer.tokenize(expression))
+
+            for step in visualize_calc(postfixed_expr):
+                if step.operation:
+                    print(f"> {step.operation}")
+                if step.stack and step.input:
+                    print()
+                    _print_with_padding(step.stack, step.input)
+                input()
+            return
+
+        lexer = ExpressionLexer()
+        parser = ExpressionParser()
+        result: int | float = parser.parse(lexer.tokenize(expression))
+        print(result)
+    except Exception as e:
+        raise typer.BadParameter(str(e)) from e
+
+
+class Time:
+    """Custom time class supporting arithmetic operations."""
+
+    def __init__(self, hours: int = 0, minutes: int = 0, seconds: int = 0) -> None:
+        absolute = abs(seconds) + abs(minutes) * 60 + abs(hours) * 60 * 60
+        if hours < 0 or minutes < 0 or seconds < 0:
+            self._total_secs = 0 - absolute
+        else:
+            self._total_secs = absolute
+
+    @property
+    def hours(self) -> int:
+        """Hours component in HH:MM:SS display format."""
+        absolute = abs(self._total_secs) // (60 * 60)
+        return absolute if self._total_secs >= 0 else 0 - absolute
+
+    @property
+    def minutes(self) -> int:
+        """Minutes component in HH:MM:SS display format."""
+        absolute = (abs(self._total_secs) % (60 * 60)) // 60
+        return absolute if self._total_secs >= 0 else 0 - absolute
+
+    @property
+    def seconds(self) -> int:
+        """Seconds component in HH:MM:SS display format."""
+        absolute = abs(self._total_secs) % 60
+        return absolute if self._total_secs >= 0 else 0 - absolute
+
+    @property
+    def total_hours(self) -> int:
+        """Total duration converted to whole hours."""
+        absolute = abs(self._total_secs) // (60 * 60)
+        return absolute if self._total_secs >= 0 else 0 - absolute
+
+    @property
+    def total_minutes(self) -> int:
+        """Total duration converted to whole minutes."""
+        absolute = abs(self._total_secs) // 60
+        return absolute if self._total_secs >= 0 else 0 - absolute
+
+    @property
+    def total_seconds(self) -> int:
+        """Total duration in seconds."""
+        return self._total_secs
+
+    def __add__(self, other):
+        if isinstance(other, Time):
+            return Time(seconds=self.total_seconds + other.total_seconds)
+        raise TypeError(
+            f"unsupported operand type(s) for +: 'Time' and '{type(other).__name__}'"
+        )
+
+    def __sub__(self, other):
+        if isinstance(other, Time):
+            return Time(seconds=self.total_seconds - other.total_seconds)
+        raise TypeError(
+            f"unsupported operand type(s) for -: 'Time' and '{type(other).__name__}'"
+        )
+
+    def __mul__(self, other):
+        if isinstance(other, (int, float)):
+            return Time(seconds=int(self.total_seconds * other))
+        raise TypeError(
+            f"unsupported operand type(s) for *: 'Time' and '{type(other).__name__}'"
+        )
+
+    def __rmul__(self, other):
+        if isinstance(other, (int, float)):
+            return Time(seconds=int(self.total_seconds * other))
+        raise TypeError(
+            f"unsupported operand type(s) for *: '{type(other).__name__}' and 'Time'"
+        )
+
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            return Time(seconds=int(self.total_seconds / other))
+        raise TypeError(
+            f"unsupported operand type(s) for /: 'Time' and '{type(other).__name__}'"
+        )
+
+    def __str__(self):
+        if self.total_seconds < 0:
+            return f"-{abs(self.hours)}:{abs(self.minutes):02}:{abs(self.seconds):02}"
+        return f"{abs(self.hours)}:{abs(self.minutes):02}:{abs(self.seconds):02}"
+
+
+@dataclass
+class ExpressionResult:
+    """Represents the result of parsing an expression for visualization."""
+
+    value: tuple[str] | str
+    type: str
+
+
+@dataclass
+class VisualCalcStep:
+    """Represents a single step in the calculation process."""
+
+    operation: str | None
+    stack: str | None
+    input: str | None
+
+
+class ParsingError(Exception):
+    """Custom exception for parsing errors"""
 
 
 class ExpressionLexer(Lexer):
@@ -402,3 +578,12 @@ def _trim_time_or_num(value: Time | int | float) -> Time | int | float:
     if isinstance(value, int):
         return value
     return int(value) if value.is_integer() else value
+
+
+def _print_with_padding(left_side: str, right_side: str) -> None:
+    terminal_width = os.get_terminal_size().columns
+    padding = terminal_width - len(left_side) - len(right_side)
+    if padding > 0:
+        print(left_side + " " * padding + right_side)
+    else:
+        print(left_side + " " * 2 + right_side)
