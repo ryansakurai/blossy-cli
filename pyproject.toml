@@ -1,6 +1,6 @@
 [project]
 name = "blossy"
-version = "7.0.3"
+version = "7.0.4"
 description = "A lil' bud that helps you with stuff (it's a utility CLI)."
 authors = [
     {name = "Ryan Sakurai",email = "ryansakurai03@gmail.com"}

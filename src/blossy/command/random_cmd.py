@@ -5,11 +5,8 @@ import random
 import typer
 from typing_extensions import Annotated
 
-app = typer.Typer()
 
-
-@app.command()
-def main(
+def execute(
     lower: Annotated[
         int,
         typer.Argument(show_default=False, help="Lower limit (inclusive)."),
