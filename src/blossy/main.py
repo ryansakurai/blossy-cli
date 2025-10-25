@@ -15,9 +15,9 @@ app = typer.Typer(
     name="blossy", help="A lil' bud that helps you with stuff (it's a utility CLI)."
 )
 
-app.add_typer(calculate.app, name="calc")
-app.add_typer(count_chars.app, name="countc")
-app.add_typer(count_lines.app, name="countl")
-app.add_typer(percentage.app, name="perc")
-app.add_typer(random_cmd.app, name="rand")
-app.add_typer(standardize.app, name="stddz")
+app.command("calc")(calculate.execute)
+app.command("countc")(count_chars.execute)
+app.command("countl")(count_lines.execute)
+app.command("perc")(percentage.execute)
+app.command("rand")(random_cmd.execute)
+app.command("stddz")(standardize.execute)

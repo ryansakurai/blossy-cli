@@ -9,13 +9,9 @@ from sly.lex import Token
 from sly.yacc import YaccProduction
 from typing_extensions import Annotated
 
+
 # TODO: ditch sly, cause WTF
-
-app = typer.Typer()
-
-
-@app.command()
-def main(
+def execute(
     expression: Annotated[
         str, typer.Argument(show_default=False, help="Expression to be calculated.")
     ],

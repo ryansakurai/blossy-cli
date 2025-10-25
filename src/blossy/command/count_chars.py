@@ -5,11 +5,8 @@ import os
 import typer
 from typing_extensions import Annotated
 
-app = typer.Typer()
 
-
-@app.command()
-def main(
+def execute(
     file: Annotated[
         str, typer.Argument(show_default=False, help="Relative path to the file.")
     ],

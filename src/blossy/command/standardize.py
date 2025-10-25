@@ -8,11 +8,8 @@ from collections.abc import Iterable
 import typer
 from typing_extensions import Annotated
 
-app = typer.Typer()
 
-
-@app.command()
-def main(
+def execute(
     prefix: Annotated[
         str, typer.Argument(show_default=False, help="Prefix of the files.")
     ],
