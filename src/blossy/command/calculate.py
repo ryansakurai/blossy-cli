@@ -1,6 +1,6 @@
 """'calc' command of the Blossy CLI."""
 
-from collections.abc import Generator
+from collections.abc import Generator, Iterable
 from dataclasses import dataclass
 
 import typer
